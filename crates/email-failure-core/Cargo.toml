@@ -1,5 +1,6 @@
 [package]
 name = "email-failure-core"
+description = "Pure deterministic core for explaining transactional email failures."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

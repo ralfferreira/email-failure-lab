@@ -2,7 +2,11 @@
 
 From cryptic email failures to actionable fixes in seconds.
 
-Email Failure Lab is a small Rust-powered toolkit for explaining transactional email failures. The v0.1 milestone focuses on one polished command: `email-lab explain`.
+Email Failure Lab is a Rust-powered CLI and core library for developers who need to understand why transactional emails failed and what their application should do next.
+
+The project turns SMTP errors and bounce-like text into a structured report with a failure category, bounce type, confidence level, recommended app behavior, and the exact signals that drove the decision.
+
+The first milestone focuses on one polished command: `email-lab explain`.
 
 ```bash
 cargo run -p email-failure-cli -- explain "550 5.1.1 User unknown"
@@ -28,9 +32,23 @@ Signals:
 - matched_phrase: user unknown
 ```
 
+## What it is
+
+Email Failure Lab is not an email provider, dashboard, or deliverability black box. It is a developer tool for debugging transactional email failures locally and deterministically.
+
+It is designed around a small pure Rust core and a CLI boundary:
+
+- The core library parses signals and builds stable reports.
+- The CLI handles arguments, file input, and output formatting.
+- The JSON output is intended for automation and future integrations.
+
+## Project status
+
+Email Failure Lab is in early v0.1 development. The current scope is intentionally small: explain SMTP errors, bounce-like strings, and plain text files. Provider payloads, webhook simulation, DNS checks, Node bindings, and web demos are future milestones.
+
 ## Quickstart
 
-Build and run from source:
+Clone the repository and run from source:
 
 ```bash
 cargo run -p email-failure-cli -- explain "550 5.1.1 User unknown"
@@ -111,6 +129,16 @@ The v0.1 pipeline is:
 input -> parse signals -> classify category -> infer bounce type -> recommend action -> build report
 ```
 
+## Repository layout
+
+```txt
+crates/
+  email-failure-core/  # pure parsing, classification, recommendations, reports
+  email-failure-cli/   # CLI args, file input, text/JSON output
+docs/
+  failure-categories.md
+```
+
 ## Development
 
 ```bash
@@ -119,6 +147,25 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
+On Windows, the default MSVC toolchain requires Visual Studio Build Tools with the C++ linker installed. The project also validates with the GNU Rust toolchain:
+
+```bash
+cargo +stable-x86_64-pc-windows-gnu test --workspace
+```
+
+## Contributing
+
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, scope, testing expectations, and PR guidelines.
+
 ## v0.1 non-goals
 
 Email Failure Lab v0.1 does not include DNS Doctor, webhook simulation, provider API integration, Node bindings, TypeScript packages, Next.js examples, telemetry, databases, or full `.eml`/MIME parsing.
+
+## License
+
+Email Failure Lab is licensed under either of:
+
+- Apache License, Version 2.0
+- MIT license
+
+at your option.
