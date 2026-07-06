@@ -1,0 +1,209 @@
+[
+  {
+    "name": "invalid recipient full signal",
+    "input": "550 5.1.1 User unknown",
+    "category": "invalid_recipient",
+    "bounceType": "hard",
+    "recommendedAction": "suppress_recipient",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "mailbox full",
+    "input": "550 5.2.2 Mailbox full",
+    "category": "mailbox_full",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "temporary try again later",
+    "input": "451 4.7.0 Try again later",
+    "category": "temporary_failure",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "policy rejected",
+    "input": "550 5.7.1 Message rejected",
+    "category": "policy_rejection",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "temporary system problem",
+    "input": "421 Temporary System Problem",
+    "category": "temporary_failure",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["smtp_code", "matched_phrase"]
+  },
+  {
+    "name": "content rejected as spam",
+    "input": "Message rejected as spam",
+    "category": "content_rejected",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["matched_phrase"]
+  },
+  {
+    "name": "enhanced status only",
+    "input": "5.1.1",
+    "category": "invalid_recipient",
+    "bounceType": "hard",
+    "recommendedAction": "suppress_recipient",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["enhanced_status_code"]
+  },
+  {
+    "name": "smtp 550 only",
+    "input": "550",
+    "category": "unknown",
+    "bounceType": "unknown",
+    "recommendedAction": "unknown",
+    "confidenceLevel": "low",
+    "requiredSignalKinds": []
+  },
+  {
+    "name": "enhanced invalid recipient beats weak message rejected phrase",
+    "input": "550 5.1.1 Message rejected",
+    "category": "invalid_recipient",
+    "bounceType": "hard",
+    "recommendedAction": "suppress_recipient",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "negated blocked phrase",
+    "input": "This message is not blocked",
+    "category": "unknown",
+    "bounceType": "unknown",
+    "recommendedAction": "unknown",
+    "confidenceLevel": "low",
+    "requiredSignalKinds": []
+  },
+  {
+    "name": "unauthenticated 571",
+    "input": "550 5.7.1 Unauthenticated email from example.com is not accepted",
+    "category": "authentication_failure",
+    "bounceType": "hard",
+    "recommendedAction": "fix_domain_authentication",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "571 rejected as spam",
+    "input": "550 5.7.1 Message rejected as spam",
+    "category": "content_rejected",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "spf fail",
+    "input": "550 5.7.1 Message rejected due to SPF fail",
+    "category": "authentication_failure",
+    "bounceType": "hard",
+    "recommendedAction": "fix_domain_authentication",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "dkim fail",
+    "input": "550 5.7.1 DKIM fail",
+    "category": "authentication_failure",
+    "bounceType": "hard",
+    "recommendedAction": "fix_domain_authentication",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "dmarc fail",
+    "input": "550 5.7.1 DMARC fail",
+    "category": "authentication_failure",
+    "bounceType": "hard",
+    "recommendedAction": "fix_domain_authentication",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "rate limited",
+    "input": "421 4.7.0 Rate limited, try again later",
+    "category": "rate_limited",
+    "bounceType": "soft",
+    "recommendedAction": "reduce_sending_rate",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "too many messages",
+    "input": "421 Too many messages from this sender",
+    "category": "rate_limited",
+    "bounceType": "soft",
+    "recommendedAction": "reduce_sending_rate",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["smtp_code", "matched_phrase"]
+  },
+  {
+    "name": "mailbox unavailable",
+    "input": "Recipient address rejected: mailbox unavailable",
+    "category": "invalid_recipient",
+    "bounceType": "hard",
+    "recommendedAction": "suppress_recipient",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["matched_phrase"]
+  },
+  {
+    "name": "quota exceeded",
+    "input": "Delivery failed because quota exceeded",
+    "category": "mailbox_full",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["matched_phrase"]
+  },
+  {
+    "name": "content rejected",
+    "input": "Content rejected by receiving server",
+    "category": "content_rejected",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["matched_phrase"]
+  },
+  {
+    "name": "provider internal error",
+    "input": "Provider error: upstream error while processing message",
+    "category": "provider_error",
+    "bounceType": "unknown",
+    "recommendedAction": "investigate_provider",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["matched_phrase"]
+  },
+  {
+    "name": "unknown text",
+    "input": "remote host returned an unusual greeting",
+    "category": "unknown",
+    "bounceType": "unknown",
+    "recommendedAction": "unknown",
+    "confidenceLevel": "low",
+    "requiredSignalKinds": []
+  },
+  {
+    "name": "case insensitive",
+    "input": "552 5.2.2 MAILBOX FULL",
+    "category": "mailbox_full",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["enhanced_status_code", "matched_phrase"]
+  }
+]
