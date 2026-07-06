@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "crates/email-failure-core",
+    "crates/email-failure-cli",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/email-failure-lab/email-failure-lab"
+version = "0.1.0"
+
