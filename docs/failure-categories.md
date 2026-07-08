@@ -37,7 +37,7 @@ For example, `550 5.1.1 User unknown` is high confidence because the enhanced st
 
 - Bounce type: `hard`
 - Recommended action: `suppress_recipient`
-- Typical signals: `5.1.1`, `user unknown`, `recipient address rejected`, `no such user`
+- Typical signals: `5.1.1`, `5.2.1`, `user unknown`, `recipient address rejected`, `mailbox disabled`, `no such user`
 - App handling: stop sending to the address, mark it invalid, and ask the user to update it.
 
 ## mailbox_full
@@ -51,35 +51,35 @@ For example, `550 5.1.1 User unknown` is high confidence because the enhanced st
 
 - Bounce type: `hard`
 - Recommended action: `fix_domain_authentication`
-- Typical signals: `spf fail`, `dkim fail`, `dmarc fail`, `unauthenticated email`
+- Typical signals: `5.7.26`, `spf fail`, `dkim fail`, `dmarc fail`, `unauthenticated email`, `this mail is unauthenticated`
 - App handling: check sending domain authentication before retrying at volume.
 
 ## policy_rejection
 
 - Bounce type: `hard`
 - Recommended action: `review_content`
-- Typical signals: `5.7.1`, `rejected by policy`, `message rejected`, `blocked`
+- Typical signals: `5.7.1`, `rejected by policy`, `message rejected`, `blocked`, `access denied`, `block list`
 - App handling: review policy requirements, sending reputation, recipient rules, and message content.
 
 ## rate_limited
 
 - Bounce type: `soft`
 - Recommended action: `reduce_sending_rate`
-- Typical signals: `rate limited`, `too many messages`, `throttled`
+- Typical signals: `rate limited`, `rate limit exceeded`, `too many messages`, `throttled`
 - App handling: slow down delivery, apply exponential backoff, and avoid retry storms.
 
 ## temporary_failure
 
 - Bounce type: `soft`
 - Recommended action: `retry_later`
-- Typical signals: `421`, `451`, `temporary failure`, `try again later`
+- Typical signals: `421`, `451`, `temporary failure`, `temporarily deferred`, `try again later`
 - App handling: retry later with backoff and preserve the original failure context.
 
 ## content_rejected
 
 - Bounce type: `hard`
 - Recommended action: `review_content`
-- Typical signals: `message rejected as spam`, `classified as spam`, `content rejected`, `spam detected`
+- Typical signals: `message rejected as spam`, `classified as spam`, `content rejected`, `identified as spam`, `spam detected`
 - App handling: inspect message content, links, headers, and sending patterns before retrying.
 
 ## provider_error

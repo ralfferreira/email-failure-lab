@@ -120,6 +120,40 @@ fn multiline_fixtures_cover_split_signals() {
     }
 }
 
+#[test]
+fn provider_style_fixtures_cover_common_mailbox_patterns() {
+    let fixtures: Vec<FixtureCase> =
+        serde_json::from_str(include_str!("../fixtures/cases.json")).expect("valid fixtures");
+
+    let provider_fixtures = fixtures
+        .iter()
+        .filter(|fixture| fixture.name.starts_with("provider "))
+        .collect::<Vec<_>>();
+
+    assert!(
+        provider_fixtures.len() >= 10,
+        "expected at least 10 provider-style fixtures, got {}",
+        provider_fixtures.len()
+    );
+
+    for pattern in [
+        "gmail-style",
+        "microsoft-style",
+        "yahoo-style",
+        "mailbox disabled",
+        "mailbox unavailable",
+        "rate limit",
+        "throttled",
+    ] {
+        assert!(
+            provider_fixtures
+                .iter()
+                .any(|fixture| fixture.name.contains(pattern)),
+            "provider-style fixtures should cover {pattern}"
+        );
+    }
+}
+
 fn normalize_for_fixture_assertion(input: &str) -> String {
     input
         .to_lowercase()
