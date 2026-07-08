@@ -1,5 +1,8 @@
 # Email Failure Lab
 
+[![CI](https://github.com/ralfferreira/email-failure-lab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ralfferreira/email-failure-lab/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
+
 From cryptic email failures to actionable fixes in seconds.
 
 Email Failure Lab is a Rust-powered CLI and core library for developers who need to understand why transactional emails failed and what their application should do next.
@@ -60,6 +63,12 @@ Explain a plain text file:
 cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/raw/invalid-recipient.txt
 ```
 
+Pipe failure text from stdin:
+
+```bash
+echo "550 5.1.1 User unknown" | cargo run -p email-failure-cli -- explain -
+```
+
 Emit stable JSON:
 
 ```bash
@@ -114,7 +123,7 @@ cargo run -p email-failure-cli -- explain "550 5.1.1 User unknown" --json
 - `provider_error`
 - `unknown`
 
-See [docs/failure-categories.md](docs/failure-categories.md) for category behavior and recommended app handling.
+See [docs/failure-categories.md](docs/failure-categories.md) for category behavior, confidence scoring, and recommended app handling.
 
 ## Architecture
 
@@ -141,6 +150,8 @@ docs/
 
 ## Development
 
+Email Failure Lab currently supports Rust 1.85 or newer. The repository includes `rust-toolchain.toml` so local development and CI use the same baseline toolchain.
+
 ```bash
 cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
@@ -150,7 +161,7 @@ cargo test --workspace
 On Windows, the default MSVC toolchain requires Visual Studio Build Tools with the C++ linker installed. The project also validates with the GNU Rust toolchain:
 
 ```bash
-cargo +stable-x86_64-pc-windows-gnu test --workspace
+cargo +1.85.0-x86_64-pc-windows-gnu test --workspace
 ```
 
 ## Contributing

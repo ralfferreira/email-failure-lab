@@ -18,19 +18,21 @@ Please do not add DNS checks, webhook simulation, provider API integrations, Nod
 
 ## Development setup
 
-Install Rust stable, then run:
+Install Rust 1.85 or newer. The repository includes `rust-toolchain.toml`, so `cargo` and `rustup` will use the supported baseline toolchain automatically when possible.
+
+Then run:
 
 ```bash
 cargo fmt --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
 ```
 
 On Windows, the MSVC toolchain requires Visual Studio Build Tools with the C++ linker installed. If that is not available, the GNU toolchain is also supported for local validation:
 
 ```bash
-rustup toolchain install stable-x86_64-pc-windows-gnu
-cargo +stable-x86_64-pc-windows-gnu test --workspace
+rustup toolchain install 1.85.0-x86_64-pc-windows-gnu
+cargo +1.85.0-x86_64-pc-windows-gnu test --workspace --locked
 ```
 
 ## Adding classification rules
@@ -49,8 +51,8 @@ When adding or changing a rule:
 Before opening a PR:
 
 - run `cargo fmt --check`
-- run `cargo clippy --workspace --all-targets -- -D warnings`
-- run `cargo test --workspace`
+- run `cargo clippy --workspace --all-targets --locked -- -D warnings`
+- run `cargo test --workspace --locked`
 - update README/docs when behavior changes
 - add fixtures for new failure patterns
 - keep the PR focused on one behavior or milestone

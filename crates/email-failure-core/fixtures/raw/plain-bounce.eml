@@ -1,0 +1,6 @@
+From: delivery-status@example.invalid
+To: sender@example.invalid
+Subject: Delivery status notification
+
+550 5.1.1 User unknown
+The recipient mailbox does not exist.

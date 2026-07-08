@@ -10,4 +10,5 @@ description = "A Rust-powered CLI and core library for explaining transactional 
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ralfferreira/email-failure-lab"
+rust-version = "1.85"
 version = "0.1.0"

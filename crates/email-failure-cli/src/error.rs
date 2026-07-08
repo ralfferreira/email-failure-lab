@@ -6,6 +6,8 @@ use thiserror::Error;
 pub enum CliError {
     #[error("input cannot be empty")]
     EmptyInput,
+    #[error("could not read stdin text: {0}")]
+    ReadStdin(#[source] std::io::Error),
     #[error("could not read input file '{path}': {source}")]
     ReadFile {
         path: PathBuf,
