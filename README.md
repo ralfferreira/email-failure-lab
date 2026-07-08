@@ -111,6 +111,8 @@ cargo run -p email-failure-cli -- explain "550 5.1.1 User unknown" --json
 }
 ```
 
+The JSON output contract is documented in [schemas/failure-report.v0.1.json](schemas/failure-report.v0.1.json).
+
 ## Supported v0.1 categories
 
 - `invalid_recipient`
@@ -146,6 +148,8 @@ crates/
   email-failure-cli/   # CLI args, file input, text/JSON output
 docs/
   failure-categories.md
+schemas/
+  failure-report.v0.1.json
 ```
 
 ## Development
