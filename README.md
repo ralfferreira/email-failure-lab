@@ -47,7 +47,7 @@ It is designed around a small pure Rust core and a CLI boundary:
 
 ## Project status
 
-Email Failure Lab is in early v0.1 development. The current scope is intentionally small: explain SMTP errors, bounce-like strings, and plain text files. Provider payloads, webhook simulation, DNS checks, Node bindings, and web demos are future milestones.
+Email Failure Lab is in early v0.1 development. The current scope is intentionally small: explain SMTP errors, bounce-like strings, and plain text files, including multiline snippets copied from logs or bounce notifications. Provider payloads, webhook simulation, DNS checks, Node bindings, and web demos are future milestones.
 
 ## Quickstart
 
@@ -63,10 +63,14 @@ Explain a plain text file:
 cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/raw/invalid-recipient.txt
 ```
 
-Pipe failure text from stdin:
+Pipe one-line or multiline failure text from stdin:
 
 ```bash
 echo "550 5.1.1 User unknown" | cargo run -p email-failure-cli -- explain -
+```
+
+```bash
+printf "550\n5.1.1\nUser unknown\n" | cargo run -p email-failure-cli -- explain -
 ```
 
 Emit stable JSON:
@@ -112,6 +116,8 @@ cargo run -p email-failure-cli -- explain "550 5.1.1 User unknown" --json
 ```
 
 The JSON output contract is documented in [schemas/failure-report.v0.1.json](schemas/failure-report.v0.1.json).
+
+Multiline input is normalized as plain text before classification, so signals can appear on different lines. Full `.eml`, MIME, attachment, and DSN parsing remain out of scope for v0.1; `.eml` files are treated as plain UTF-8 text.
 
 ## Supported v0.1 categories
 

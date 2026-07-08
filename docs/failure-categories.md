@@ -2,6 +2,8 @@
 
 Email Failure Lab v0.1 intentionally keeps categories broad and deterministic. Confidence is rule strength, not a statistical probability.
 
+Inputs are treated as plain text. Multiline SMTP snippets are normalized before classification, so a code, enhanced status code, and matching phrase may appear on separate lines and still produce the same category. Full `.eml`, MIME, attachment, and DSN parsing are intentionally outside the v0.1 category model.
+
 ## Confidence scoring
 
 Confidence is a deterministic score for how strongly the current rules support the report. It is not a statistical probability, a delivery-rate prediction, or a claim that the remote mailbox state is known.

@@ -159,6 +159,13 @@ mod tests {
     }
 
     #[test]
+    fn matches_phrases_across_normalized_line_breaks() {
+        let signals = parse("Remote said:\nUser\nunknown");
+
+        assert!(signals.contains(&(SignalKind::MatchedPhrase, "user unknown".to_owned())));
+    }
+
+    #[test]
     fn parses_smtp_code_without_parsing_enhanced_status_as_smtp() {
         let signals = parse("550 5.1.1 User unknown");
 
