@@ -2,6 +2,33 @@
 
 Email Failure Lab v0.1 intentionally keeps categories broad and deterministic. Confidence is rule strength, not a statistical probability.
 
+## Confidence scoring
+
+Confidence is a deterministic score for how strongly the current rules support the report. It is not a statistical probability, a delivery-rate prediction, or a claim that the remote mailbox state is known.
+
+Signals contribute the current weights:
+
+- SMTP code: 20
+- Enhanced status code: 35
+- Strong matched phrase: 35
+- Weak matched phrase: 20
+
+After adding signal weights, the scorer applies a few simple adjustments:
+
+- If at least two recognized signals point to the same category, add 10.
+- If recognized signals point to conflicting categories, subtract 20.
+- If a recognized category has an enhanced status code or strong phrase, keep the score at 60 or higher.
+- If the only signals are generic SMTP codes, cap the score at 59.
+- Clamp the final score to the range 1-99.
+
+Confidence levels are derived from the final score:
+
+- `high`: 90-99
+- `medium`: 60-89
+- `low`: 1-59
+
+For example, `550 5.1.1 User unknown` is high confidence because the enhanced status code and phrase both point to `invalid_recipient`. A bare `550` remains low confidence because the SMTP code alone does not identify the cause.
+
 ## invalid_recipient
 
 - Bounce type: `hard`

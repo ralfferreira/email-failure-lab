@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
 use clap::Args;
@@ -51,6 +52,10 @@ struct ResolvedInput {
 }
 
 fn resolve_input(input: &str) -> Result<ResolvedInput, CliError> {
+    if input == "-" {
+        return read_stdin();
+    }
+
     if input.trim().is_empty() {
         return Err(CliError::EmptyInput);
     }
@@ -80,6 +85,22 @@ fn resolve_input(input: &str) -> Result<ResolvedInput, CliError> {
 
     Ok(ResolvedInput {
         raw: input.to_owned(),
+        source: InputSource::Inline,
+    })
+}
+
+fn read_stdin() -> Result<ResolvedInput, CliError> {
+    let mut raw = String::new();
+    io::stdin()
+        .read_to_string(&mut raw)
+        .map_err(CliError::ReadStdin)?;
+
+    if raw.trim().is_empty() {
+        return Err(CliError::EmptyInput);
+    }
+
+    Ok(ResolvedInput {
+        raw,
         source: InputSource::Inline,
     })
 }
@@ -125,6 +146,7 @@ mod tests {
         assert!(is_path_like("fixtures\\bounce.txt"));
         assert!(is_path_like("bounce.eml"));
         assert!(is_path_like("bounce.log"));
+        assert!(!is_path_like("-"));
         assert!(!is_path_like("mailbox.full"));
     }
 }

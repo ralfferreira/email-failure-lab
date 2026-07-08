@@ -18,7 +18,9 @@ Please do not add DNS checks, webhook simulation, provider API integrations, Nod
 
 ## Development setup
 
-Install Rust stable, then run:
+Install Rust 1.85 or newer. The repository includes `rust-toolchain.toml`, so `cargo` and `rustup` will use the supported baseline toolchain automatically when possible.
+
+Then run:
 
 ```bash
 cargo fmt --check
@@ -29,8 +31,8 @@ cargo test --workspace
 On Windows, the MSVC toolchain requires Visual Studio Build Tools with the C++ linker installed. If that is not available, the GNU toolchain is also supported for local validation:
 
 ```bash
-rustup toolchain install stable-x86_64-pc-windows-gnu
-cargo +stable-x86_64-pc-windows-gnu test --workspace
+rustup toolchain install 1.85.0-x86_64-pc-windows-gnu
+cargo +1.85.0-x86_64-pc-windows-gnu test --workspace
 ```
 
 ## Adding classification rules
