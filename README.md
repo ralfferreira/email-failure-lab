@@ -63,6 +63,12 @@ Explain a plain text file:
 cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/raw/invalid-recipient.txt
 ```
 
+Pipe failure text from stdin:
+
+```bash
+echo "550 5.1.1 User unknown" | cargo run -p email-failure-cli -- explain -
+```
+
 Emit stable JSON:
 
 ```bash

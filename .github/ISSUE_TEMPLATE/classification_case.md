@@ -15,7 +15,7 @@ Paste a sanitized SMTP error, bounce snippet, or plain text `.eml` excerpt.
 
 ## Expected classification
 
-- Category:
+- Failure category:
 - Bounce type:
 - Recommended action:
 - Confidence:

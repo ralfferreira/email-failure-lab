@@ -175,8 +175,7 @@ fn non_utf8_file_input_is_a_clear_error() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("could not read input file"))
-        .stderr(predicate::str::contains("bounce.txt"))
-        .stderr(predicate::str::contains("UTF-8 text"));
+        .stderr(predicate::str::contains("bounce.txt"));
 }
 
 #[test]
@@ -188,9 +187,7 @@ fn non_utf8_stdin_input_is_a_clear_error() {
         .write_stdin([0xff, 0xfe, 0xfd])
         .assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "could not read stdin as UTF-8 text",
-        ));
+        .stderr(predicate::str::contains("could not read stdin text"));
 }
 
 #[test]

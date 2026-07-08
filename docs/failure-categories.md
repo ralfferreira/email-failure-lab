@@ -17,9 +17,11 @@ After adding signal weights, the scorer applies a few simple adjustments:
 
 - If at least two recognized signals point to the same category, add 10.
 - If recognized signals point to conflicting categories, subtract 20.
-- If a recognized category has an enhanced status code or strong phrase, keep the score at 60 or higher.
+- If any category is recognized and the input includes an enhanced status code or strong matched phrase, keep the score at 60 or higher, even when that strong signal is not itself category-specific.
 - If the only signals are generic SMTP codes, cap the score at 59.
 - Clamp the final score to the range 1-99.
+
+The 60-point floor is applied after conflict penalties. That means a mixed or partial input can still end at medium confidence when it includes a strong signal.
 
 Confidence levels are derived from the final score:
 
@@ -27,7 +29,7 @@ Confidence levels are derived from the final score:
 - `medium`: 60-89
 - `low`: 1-59
 
-For example, `550 5.1.1 User unknown` is high confidence because the enhanced status code and phrase both point to `invalid_recipient`. A bare `550` remains low confidence because the SMTP code alone does not identify the cause.
+For example, `550 5.1.1 User unknown` is high confidence because the enhanced status code and phrase both point to `invalid_recipient`. A bare `550` remains low confidence because the SMTP code alone does not identify the cause. `421 5.4.1` is medium confidence because `421` points to `temporary_failure` and the enhanced status code triggers the medium-confidence floor, even though `5.4.1` does not map to a category.
 
 ## invalid_recipient
 
