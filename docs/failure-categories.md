@@ -51,7 +51,7 @@ For example, `550 5.1.1 User unknown` is high confidence because the enhanced st
 
 - Bounce type: `hard`
 - Recommended action: `fix_domain_authentication`
-- Typical signals: `spf fail`, `dkim fail`, `dmarc fail`, `unauthenticated email`, `this mail is unauthenticated`, `authentication required`
+- Typical signals: `5.7.26`, `spf fail`, `dkim fail`, `dmarc fail`, `unauthenticated email`, `this mail is unauthenticated`
 - App handling: check sending domain authentication before retrying at volume.
 
 ## policy_rejection

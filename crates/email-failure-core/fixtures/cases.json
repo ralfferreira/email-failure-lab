@@ -301,8 +301,7 @@
     "requiredSignals": [
       { "kind": "smtp_code", "value": "550" },
       { "kind": "enhanced_status_code", "value": "5.7.26" },
-      { "kind": "matched_phrase", "value": "this mail is unauthenticated" },
-      { "kind": "matched_phrase", "value": "authentication required" }
+      { "kind": "matched_phrase", "value": "this mail is unauthenticated" }
     ]
   },
   {
@@ -451,6 +450,19 @@
       { "kind": "enhanced_status_code", "value": "5.7.1" },
       { "kind": "matched_phrase", "value": "identified as spam" },
       { "kind": "matched_phrase", "value": "message rejected" }
+    ]
+  },
+  {
+    "name": "smtp relay authentication required remains unknown",
+    "input": "530 5.7.0 Authentication required",
+    "category": "unknown",
+    "bounceType": "unknown",
+    "recommendedAction": "unknown",
+    "confidenceLevel": "low",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "530" },
+      { "kind": "enhanced_status_code", "value": "5.7.0" }
     ]
   }
 ]
