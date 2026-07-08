@@ -289,5 +289,168 @@
       { "kind": "enhanced_status_code", "value": "4.3.0" },
       { "kind": "matched_phrase", "value": "try again later" }
     ]
+  },
+  {
+    "name": "provider gmail-style 5726 unauthenticated mail",
+    "input": "Provider response:\n550 5.7.26 This mail is\nunauthenticated.\nAuthentication\nrequired for example.com",
+    "category": "authentication_failure",
+    "bounceType": "hard",
+    "recommendedAction": "fix_domain_authentication",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.7.26" },
+      { "kind": "matched_phrase", "value": "this mail is unauthenticated" },
+      { "kind": "matched_phrase", "value": "authentication required" }
+    ]
+  },
+  {
+    "name": "provider gmail-style dmarc rejection",
+    "input": "550 5.7.26 Unauthenticated email from example.com is not accepted due to DMARC fail",
+    "category": "authentication_failure",
+    "bounceType": "hard",
+    "recommendedAction": "fix_domain_authentication",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.7.26" },
+      { "kind": "matched_phrase", "value": "unauthenticated email" },
+      { "kind": "matched_phrase", "value": "dmarc fail" }
+    ]
+  },
+  {
+    "name": "provider microsoft-style access denied policy",
+    "input": "550 5.7.1 Service unavailable; client host blocked using provider policy. Access denied.",
+    "category": "policy_rejection",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.7.1" },
+      { "kind": "matched_phrase", "value": "blocked" },
+      { "kind": "matched_phrase", "value": "access denied" }
+    ]
+  },
+  {
+    "name": "provider microsoft-style block list policy",
+    "input": "550 5.7.1 Messages from example.com were rejected because the sending network is on a block list",
+    "category": "policy_rejection",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "medium",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.7.1" },
+      { "kind": "matched_phrase", "value": "block list" }
+    ]
+  },
+  {
+    "name": "provider yahoo-style temporary deferred",
+    "input": "421 4.7.0 Messages from example.com are temporarily deferred due to user complaints; please try again later",
+    "category": "temporary_failure",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "421" },
+      { "kind": "enhanced_status_code", "value": "4.7.0" },
+      { "kind": "matched_phrase", "value": "temporarily deferred" },
+      { "kind": "matched_phrase", "value": "try again later" }
+    ]
+  },
+  {
+    "name": "provider yahoo-style temporarily unavailable",
+    "input": "451 4.3.0 Resources temporarily unavailable. Try again later.",
+    "category": "temporary_failure",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "451" },
+      { "kind": "enhanced_status_code", "value": "4.3.0" },
+      { "kind": "matched_phrase", "value": "temporarily unavailable" },
+      { "kind": "matched_phrase", "value": "try again later" }
+    ]
+  },
+  {
+    "name": "provider mailbox disabled",
+    "input": "550 5.2.1 Recipient mailbox disabled and cannot accept messages",
+    "category": "invalid_recipient",
+    "bounceType": "hard",
+    "recommendedAction": "suppress_recipient",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.2.1" },
+      { "kind": "matched_phrase", "value": "mailbox disabled" }
+    ]
+  },
+  {
+    "name": "provider mailbox unavailable",
+    "input": "550 5.1.1 Recipient address rejected: mailbox unavailable",
+    "category": "invalid_recipient",
+    "bounceType": "hard",
+    "recommendedAction": "suppress_recipient",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.1.1" },
+      { "kind": "matched_phrase", "value": "recipient address rejected" },
+      { "kind": "matched_phrase", "value": "mailbox unavailable" }
+    ]
+  },
+  {
+    "name": "provider rate limit exceeded",
+    "input": "451 4.7.1 Rate limit exceeded for this sender; try again later",
+    "category": "rate_limited",
+    "bounceType": "soft",
+    "recommendedAction": "reduce_sending_rate",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "451" },
+      { "kind": "enhanced_status_code", "value": "4.7.1" },
+      { "kind": "matched_phrase", "value": "rate limit exceeded" },
+      { "kind": "matched_phrase", "value": "try again later" }
+    ]
+  },
+  {
+    "name": "provider throttled too many messages",
+    "input": "421 4.7.0 Delivery throttled because too many messages were sent; try again later",
+    "category": "rate_limited",
+    "bounceType": "soft",
+    "recommendedAction": "reduce_sending_rate",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "421" },
+      { "kind": "enhanced_status_code", "value": "4.7.0" },
+      { "kind": "matched_phrase", "value": "throttled" },
+      { "kind": "matched_phrase", "value": "too many messages" }
+    ]
+  },
+  {
+    "name": "provider spam content identified",
+    "input": "550 5.7.1 Message rejected: content identified as spam by recipient filters",
+    "category": "content_rejected",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.7.1" },
+      { "kind": "matched_phrase", "value": "identified as spam" },
+      { "kind": "matched_phrase", "value": "message rejected" }
+    ]
   }
 ]
