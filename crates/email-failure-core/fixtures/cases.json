@@ -205,5 +205,89 @@
     "recommendedAction": "retry_later",
     "confidenceLevel": "high",
     "requiredSignalKinds": ["enhanced_status_code", "matched_phrase"]
+  },
+  {
+    "name": "multiline invalid recipient split signals",
+    "input": "Remote response:\nDiagnostic-Code: smtp; 550\nStatus: 5.1.1\nReason: User\nunknown",
+    "category": "invalid_recipient",
+    "bounceType": "hard",
+    "recommendedAction": "suppress_recipient",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.1.1" },
+      { "kind": "matched_phrase", "value": "user unknown" }
+    ]
+  },
+  {
+    "name": "multiline mailbox full split phrase",
+    "input": "Remote response: 552\nEnhanced status: 5.2.2\nRecipient mailbox\nfull",
+    "category": "mailbox_full",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "552" },
+      { "kind": "enhanced_status_code", "value": "5.2.2" },
+      { "kind": "matched_phrase", "value": "mailbox full" }
+    ]
+  },
+  {
+    "name": "multiline authentication failure split phrase",
+    "input": "SMTP response: 550\nEnhanced status: 5.7.26\nUnauthenticated\nemail from example.com is not accepted",
+    "category": "authentication_failure",
+    "bounceType": "hard",
+    "recommendedAction": "fix_domain_authentication",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.7.26" },
+      { "kind": "matched_phrase", "value": "unauthenticated email" }
+    ]
+  },
+  {
+    "name": "multiline rate limited split phrase",
+    "input": "SMTP response: 421\nEnhanced status: 4.7.0\nSender is rate\nlimited\nTry again later",
+    "category": "rate_limited",
+    "bounceType": "soft",
+    "recommendedAction": "reduce_sending_rate",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "421" },
+      { "kind": "enhanced_status_code", "value": "4.7.0" },
+      { "kind": "matched_phrase", "value": "rate limited" }
+    ]
+  },
+  {
+    "name": "multiline content rejected split phrase",
+    "input": "SMTP response: 550\nEnhanced status: 5.7.1\nMessage rejected\nas spam by filter",
+    "category": "content_rejected",
+    "bounceType": "hard",
+    "recommendedAction": "review_content",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "550" },
+      { "kind": "enhanced_status_code", "value": "5.7.1" },
+      { "kind": "matched_phrase", "value": "message rejected as spam" }
+    ]
+  },
+  {
+    "name": "multiline temporary failure split phrase",
+    "input": "SMTP response: 451\nEnhanced status: 4.3.0\nPlease try\nagain later",
+    "category": "temporary_failure",
+    "bounceType": "soft",
+    "recommendedAction": "retry_later",
+    "confidenceLevel": "high",
+    "requiredSignalKinds": ["smtp_code", "enhanced_status_code", "matched_phrase"],
+    "requiredSignals": [
+      { "kind": "smtp_code", "value": "451" },
+      { "kind": "enhanced_status_code", "value": "4.3.0" },
+      { "kind": "matched_phrase", "value": "try again later" }
+    ]
   }
 ]
