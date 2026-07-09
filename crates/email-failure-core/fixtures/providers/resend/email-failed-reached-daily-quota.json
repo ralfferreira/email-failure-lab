@@ -1,0 +1,18 @@
+{
+  "type": "email.failed",
+  "created_at": "2026-07-09T12:10:00.000Z",
+  "data": {
+    "email_id": "00000000-0000-4000-8000-000000000103",
+    "from": "Example Sender <sender@example.com>",
+    "to": [
+      "recipient@example.com"
+    ],
+    "subject": "Example quota failure",
+    "failed": {
+      "reason": "reached_daily_quota"
+    },
+    "tags": {
+      "environment": "test"
+    }
+  }
+}

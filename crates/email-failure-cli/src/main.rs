@@ -11,7 +11,7 @@ use crate::error::CliError;
 #[command(
     name = "email-lab",
     version,
-    about = "Explain transactional email failures from SMTP and bounce-like text."
+    about = "Explain transactional email failures from SMTP, bounce-like text, and provider webhook JSON."
 )]
 struct Cli {
     #[command(subcommand)]
@@ -20,7 +20,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Explain an SMTP error, bounce-like string, or plain text file.
+    /// Explain SMTP text, bounce-like input, or provider webhook JSON.
     Explain(ExplainArgs),
 }
 

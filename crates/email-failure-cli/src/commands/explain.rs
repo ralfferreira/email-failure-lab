@@ -10,7 +10,7 @@ use crate::output::{format_json, format_text, OutputFormat};
 
 #[derive(Debug, Args)]
 pub struct ExplainArgs {
-    /// SMTP error, bounce-like string, or path to a plain text file.
+    /// SMTP error, bounce-like string, provider webhook JSON, or path to an input file.
     pub input: String,
     /// Emit stable JSON output.
     #[arg(long)]
@@ -106,30 +106,38 @@ fn read_stdin() -> Result<ResolvedInput, CliError> {
 }
 
 fn is_path_like(input: &str) -> bool {
+    if looks_like_inline_json(input) {
+        return false;
+    }
+
     input.starts_with("./")
         || input.starts_with("../")
         || input.starts_with('/')
         || input.starts_with("~/")
         || input.contains('/')
         || input.contains('\\')
-        || has_plain_text_file_extension(input)
+        || has_supported_input_file_extension(input)
 }
 
-fn has_plain_text_file_extension(input: &str) -> bool {
+fn looks_like_inline_json(input: &str) -> bool {
+    matches!(input.trim_start().chars().next(), Some('{' | '[' | '"'))
+}
+
+fn has_supported_input_file_extension(input: &str) -> bool {
     Path::new(input)
         .extension()
         .and_then(|extension| extension.to_str())
         .is_some_and(|extension| {
             matches!(
                 extension.to_ascii_lowercase().as_str(),
-                "txt" | "log" | "eml"
+                "txt" | "log" | "eml" | "json"
             )
         })
 }
 
 #[cfg(test)]
 mod tests {
-    use super::is_path_like;
+    use super::{is_path_like, looks_like_inline_json};
 
     #[test]
     fn dots_alone_do_not_make_input_path_like() {
@@ -146,7 +154,23 @@ mod tests {
         assert!(is_path_like("fixtures\\bounce.txt"));
         assert!(is_path_like("bounce.eml"));
         assert!(is_path_like("bounce.log"));
+        assert!(is_path_like("resend-bounced.json"));
         assert!(!is_path_like("-"));
         assert!(!is_path_like("mailbox.full"));
+    }
+
+    #[test]
+    fn json_payloads_are_not_treated_as_paths() {
+        let object = r#"{"type":"email.bounced","url":"https://example.com/events/123"}"#;
+        let array = r#"[{"url":"https://example.com/events/123"}]"#;
+        let scalar = r#""https://example.com/events/123""#;
+
+        assert!(looks_like_inline_json(object));
+        assert!(looks_like_inline_json(array));
+        assert!(looks_like_inline_json(scalar));
+        assert!(looks_like_inline_json(&format!("  {object}")));
+        assert!(!is_path_like(object));
+        assert!(!is_path_like(array));
+        assert!(!is_path_like(scalar));
     }
 }

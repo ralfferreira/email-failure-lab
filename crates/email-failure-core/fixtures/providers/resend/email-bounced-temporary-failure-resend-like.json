@@ -1,0 +1,20 @@
+{
+  "type": "email.bounced",
+  "created_at": "2026-07-09T12:15:00.000Z",
+  "data": {
+    "email_id": "00000000-0000-4000-8000-000000000104",
+    "from": "Example Sender <sender@example.com>",
+    "to": [
+      "recipient@example.com"
+    ],
+    "subject": "Example retryable delivery failure",
+    "bounce": {
+      "message": "451 4.3.0 Temporary system problem; please try again later.",
+      "type": "Transient",
+      "subType": "General"
+    },
+    "tags": {
+      "environment": "test"
+    }
+  }
+}
