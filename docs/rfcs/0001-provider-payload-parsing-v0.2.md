@@ -178,15 +178,15 @@ Failed-event sketch (also sanitized):
 }
 ```
 
-Normalization turns provider reason tokens into readable, deterministic text (for example `reached daily quota` / `rate limited`-compatible phrasing) so existing phrase or category rules can apply where they already match; otherwise the report remains `unknown` until rules or fixtures expand.
+Normalization turns provider reason tokens into readable, deterministic text so existing phrase rules can apply. Token-splitting `reached_daily_quota` alone (`reached daily quota`) does **not** match current `rate_limited` strong phrases in `docs/failure-categories.md`; see rule 3 for the expected emission for this reference case.
 
 ## Normalization rules
 
-1. **Detect JSON opportunistically.** If `raw` trims to a JSON object with `type` (string) and `data` (object), enter provider normalization. Otherwise keep today's plain-text path.
+1. **Detect JSON opportunistically.** If `raw` is not valid JSON (or is malformed), keep today's plain-text path. If it is valid JSON but not an object with `type` (string) and `data` (object)—or has an unsupported `type`—short-circuit to `FailureReport` with `category: unknown` (same as the failure-behavior table). Only when the minimal shape and a supported `type` are present, enter provider field extraction.
 2. **Extract only failure-relevant fields** for supported types:
    - `email.bounced`: `data.bounce.message`, `data.bounce.type`, `data.bounce.subType`
    - `email.failed`: `data.failed.reason`
-3. **Build deterministic text.** Concatenate extracted fields in a fixed order with stable separators (implementation detail), then feed that string into `parse_failure` as if the user had pasted SMTP/bounce text.
+3. **Build deterministic text.** Concatenate extracted fields in a fixed order with stable separators (implementation detail), then feed that string into `parse_failure` as if the user had pasted SMTP/bounce text. Non-normative reference hint: for `email.failed` with `reason: "reached_daily_quota"`, emit normalized text that includes the existing strong phrase `rate limit exceeded` (for example `reached daily quota: rate limit exceeded`) so current rules classify it as `rate_limited` without expanding the phrase list in this RFC.
 4. **Do not map provider enums directly to `FailureCategory`.** Bounce `type` / `subType` and failed `reason` become text tokens; SMTP/enhanced status/phrase rules remain the classifier.
 5. **Ignore non-failure metadata** for classification (addresses, subjects, ids, tags, timestamps).
 6. **Preserve determinism.** Same payload bytes → same normalized text → same `FailureReport`.
@@ -197,7 +197,7 @@ Normalization turns provider reason tokens into readable, deterministic text (fo
 | --- | --- | --- |
 | Bounce message containing `550 5.1.1` / user unknown | SMTP + enhanced + phrase | `invalid_recipient` |
 | Bounce `Temporary` + mailbox-full language | phrases / soft signals | `mailbox_full` or `temporary_failure` |
-| Failed reason like quota / rate language | phrase tokens | `rate_limited` when rules match |
+| Failed `reached_daily_quota` (reference) | emit text containing `rate limit exceeded` | `rate_limited` via existing phrases |
 | Unsupported or empty failure subtree | none | `unknown` |
 
 Exact string templates are left to the implementation PR so fixtures (#19) can lock them down.
@@ -234,7 +234,7 @@ This RFC does **not** add fixture files. Initial fixture expectations for follow
 ## Future work
 
 - Implement normalization in `email-failure-core` and wire through `explain` (#23).
-- Add sanitized fixtures and tests (#19).
+- Add sanitized fixtures and tests (#19); optionally consider phrase-list expansion (`daily quota` / `reached.*quota`) later so raw token-split reasons can match without emission hints.
 - Optionally extract a dedicated provider crate **after** the in-core path proves stable.
 - Additional event types (`email.delivery_delayed`, complaints, suppressions) only when they map cleanly to existing categories.
 - Explicit `--format json|text` (or similar) if opportunistic detection proves ambiguous.
