@@ -5,6 +5,7 @@ mod output;
 use clap::{Parser, Subcommand};
 
 use crate::commands::explain::{run_explain, ExplainArgs};
+use crate::commands::fixtures::{run_fixtures, FixturesArgs};
 use crate::error::CliError;
 
 #[derive(Debug, Parser)]
@@ -22,6 +23,8 @@ struct Cli {
 enum Command {
     /// Explain SMTP text, bounce-like input, or provider webhook JSON.
     Explain(ExplainArgs),
+    /// Discover and inspect built-in failure fixtures.
+    Fixtures(FixturesArgs),
 }
 
 fn main() {
@@ -36,5 +39,6 @@ fn run() -> Result<(), CliError> {
 
     match cli.command {
         Command::Explain(args) => run_explain(args),
+        Command::Fixtures(args) => run_fixtures(args),
     }
 }

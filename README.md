@@ -9,7 +9,7 @@ Email Failure Lab is a Rust-powered CLI and core library for developers who need
 
 The project turns SMTP errors and bounce-like text into a structured report with a failure category, bounce type, confidence level, recommended app behavior, and the exact signals that drove the decision.
 
-The first milestone focuses on one polished command: `email-lab explain`.
+The main classification entry point is `email-lab explain`.
 
 ```bash
 cargo run -p email-failure-cli -- explain "550 5.1.1 User unknown"
@@ -70,6 +70,20 @@ cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/p
 ```
 
 Provider JSON support is intentionally narrow: v0.2 recognizes the documented `email.bounced` and `email.failed` failure fields, ignores unrelated metadata, and makes no API calls. Valid but unsupported JSON returns an `unknown` report; malformed JSON continues through the existing plain-text classifier.
+
+Discover the built-in demo fixtures:
+
+```bash
+cargo run -p email-failure-cli -- fixtures list
+```
+
+Inspect a fixture's exact input and expected classification metadata:
+
+```bash
+cargo run -p email-failure-cli -- fixtures show invalid-recipient
+```
+
+The public fixture catalog contains the eight file-backed raw and provider examples packaged into the binary, so these commands do not depend on the current working directory. The table-driven cases in `crates/email-failure-core/fixtures/cases.json` remain internal classifier test vectors and are not listed by `fixtures list`.
 
 Pipe one-line or multiline failure text from stdin:
 

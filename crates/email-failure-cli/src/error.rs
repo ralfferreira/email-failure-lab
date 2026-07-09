@@ -16,6 +16,8 @@ pub enum CliError {
     },
     #[error("input looks like a file path, but no file exists at '{0}'")]
     MissingFile(PathBuf),
+    #[error("unknown fixture '{0}'; run 'email-lab fixtures list' to see available fixtures")]
+    UnknownFixture(String),
     #[error("could not serialize report as JSON: {0}")]
     Json(#[from] serde_json::Error),
 }
