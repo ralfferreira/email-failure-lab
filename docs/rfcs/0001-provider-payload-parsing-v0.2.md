@@ -1,6 +1,6 @@
 # RFC 0001: Provider Payload Parsing for v0.2
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Issue:** #18
 - **Unblocks:** #19, #23
 - **Created:** 2026-07-09
@@ -182,7 +182,7 @@ Normalization turns provider reason tokens into readable, deterministic text so 
 
 ## Normalization rules
 
-1. **Detect JSON opportunistically.** If `raw` is not valid JSON (or is malformed), keep today's plain-text path. If it is valid JSON but not an object with `type` (string) and `data` (object)—or has an unsupported `type`—short-circuit to `FailureReport` with `category: unknown` (same as the failure-behavior table). Only when the minimal shape and a supported `type` are present, enter provider field extraction.
+1. **Detect JSON opportunistically.** Preserve standalone three-digit `4xx` / `5xx` SMTP codes on today's plain-text path before attempting JSON parsing. Otherwise, if `raw` is not valid JSON (or is malformed), keep today's plain-text path. If it is valid JSON but not an object with `type` (string) and `data` (object)—or has an unsupported `type`—short-circuit to `FailureReport` with `category: unknown` (same as the failure-behavior table). Only when the minimal shape and a supported `type` are present, enter provider field extraction.
 2. **Extract only failure-relevant fields** for supported types:
    - `email.bounced`: `data.bounce.message`, `data.bounce.type`, `data.bounce.subType`
    - `email.failed`: `data.failed.reason`
@@ -207,6 +207,7 @@ Exact string templates are left to the implementation PR so fixtures (#19) can l
 | Input | Behavior |
 | --- | --- |
 | Plain SMTP / bounce text | Unchanged text pipeline |
+| Standalone three-digit `4xx` / `5xx` SMTP code | Unchanged text pipeline, even though the token is also valid JSON number syntax |
 | Malformed JSON (not valid JSON) | **Treat as plain text** until an explicit input-format flag or media type exists |
 | Valid JSON without `type`+`data`, or unsupported `type` | Return `FailureReport` with `category: unknown` (and usual unknown guidance); **not** a CLI usage error |
 | Supported type but missing failure subtree / empty useful fields | `unknown` report |
@@ -223,11 +224,13 @@ This RFC does **not** add fixture files. Initial fixture expectations for follow
 
 1. Sanitized `email.bounced` payloads covering at least:
    - invalid recipient (SMTP-bearing bounce message),
-   - temporary / soft failure language,
-   - authentication-related bounce message.
-2. Sanitized `email.failed` payload(s) with provider reason strings.
+   - authentication-related bounce message,
+   - a synthetic retryable `temporary_failure` example using the supported bounce field shape.
+2. A sanitized `email.failed` payload for `reached_daily_quota`.
 3. Negative cases: unsupported `type`, valid JSON non-object, malformed JSON-as-text.
 4. Store under the existing fixture layout once #19 lands; keep examples free of real emails, ids, or secrets.
+
+The retryable `temporary_failure` fixture is deliberately labeled **Resend-like**. It exercises the accepted `email.bounced` field shape and the existing retry guidance without claiming that its synthetic `type` / `subType` values are canonical provider examples.
 
 #19 owns fixture files and tests. #23 owns wiring `email-lab explain` to accept these payloads end-to-end.
 
@@ -256,7 +259,7 @@ This RFC does **not** add fixture files. Initial fixture expectations for follow
    **Ignore** for classification. Do **not** preserve them in public `FailureReport` JSON for now.
 
 5. **What fixtures are needed first?**  
-   Sanitized Resend-like bounced (and failed) payloads for invalid recipient, temporary failure, and authentication failure, plus negative/unsupported JSON cases—owned by #19 after this RFC is accepted.
+   Sanitized Resend-like bounced payloads for invalid recipient, authentication failure, and a synthetic retryable `temporary_failure` case; an `email.failed` payload for `reached_daily_quota`; plus negative/unsupported JSON cases—owned by #19 after this RFC is accepted.
 
 ## External references
 

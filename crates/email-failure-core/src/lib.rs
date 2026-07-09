@@ -1,6 +1,7 @@
 pub mod classify;
 pub mod model;
 pub mod parse;
+mod provider_payload;
 pub mod recommend;
 pub mod report;
 

@@ -6,13 +6,27 @@ use crate::model::{
     RecommendedAction, SignalKind,
 };
 use crate::parse::parse_failure;
+use crate::provider_payload::{normalize_provider_payload, ProviderNormalization};
 use crate::recommend::recommend_action;
 
 const SCHEMA_VERSION: &str = "0.1";
 
 #[must_use]
 pub fn explain(input: ParseInput<'_>) -> FailureReport {
-    let parsed = parse_failure(input);
+    let ParseInput { raw, source } = input;
+    let parsed = match normalize_provider_payload(raw) {
+        ProviderNormalization::PlainText => parse_failure(ParseInput { raw, source }),
+        ProviderNormalization::UnsupportedJson => parse_failure(ParseInput { raw: "", source }),
+        ProviderNormalization::Normalized(normalized) => parse_failure(ParseInput {
+            raw: &normalized,
+            source,
+        }),
+    };
+
+    build_report(parsed)
+}
+
+fn build_report(parsed: ParsedFailure) -> FailureReport {
     let category = classify_failure(&parsed);
     let bounce_type = infer_bounce_type(&parsed, &category);
     let recommended_action = recommend_action(&category, &bounce_type);
@@ -251,5 +265,94 @@ mod tests {
                 SignalKind::MatchedPhrase
             ]
         );
+    }
+
+    #[test]
+    fn explains_supported_bounced_payload_through_the_text_pipeline() {
+        let report = explain(ParseInput {
+            raw: r#"{
+                "type": "email.bounced",
+                "data": {
+                    "bounce": {
+                        "message": "550 5.1.1 User unknown",
+                        "type": "Permanent",
+                        "subType": "General"
+                    }
+                }
+            }"#,
+            source: InputSource::Inline,
+        });
+
+        assert_eq!(report.category, FailureCategory::InvalidRecipient);
+        assert_eq!(
+            report.recommended_action,
+            RecommendedAction::SuppressRecipient
+        );
+        assert!(
+            report
+                .signals
+                .iter()
+                .any(|signal| signal.kind == SignalKind::EnhancedStatusCode
+                    && signal.value == "5.1.1")
+        );
+    }
+
+    #[test]
+    fn explains_daily_quota_as_rate_limited() {
+        let report = explain(ParseInput {
+            raw: r#"{
+                "type": "email.failed",
+                "data": {"failed": {"reason": "reached_daily_quota"}}
+            }"#,
+            source: InputSource::Inline,
+        });
+
+        assert_eq!(report.category, FailureCategory::RateLimited);
+        assert_eq!(
+            report.recommended_action,
+            RecommendedAction::ReduceSendingRate
+        );
+        assert!(report.signals.iter().any(|signal| {
+            signal.kind == SignalKind::MatchedPhrase && signal.value == "rate limit exceeded"
+        }));
+    }
+
+    #[test]
+    fn unsupported_json_does_not_leak_signals_from_metadata() {
+        let report = explain(ParseInput {
+            raw: r#"{
+                "type": "email.delivered",
+                "data": {
+                    "subject": "550 5.1.1 User unknown",
+                    "tags": {"failure": "rate limit exceeded"}
+                }
+            }"#,
+            source: InputSource::Inline,
+        });
+
+        assert_eq!(report.category, FailureCategory::Unknown);
+        assert_eq!(report.recommended_action, RecommendedAction::Unknown);
+        assert!(report.signals.is_empty());
+    }
+
+    #[test]
+    fn malformed_json_stays_on_the_plain_text_path() {
+        let report = explain(ParseInput {
+            raw: r#"{"type":"email.bounced" 550 5.1.1 User unknown"#,
+            source: InputSource::Inline,
+        });
+
+        assert_eq!(report.category, FailureCategory::InvalidRecipient);
+    }
+
+    #[test]
+    fn standalone_smtp_code_keeps_text_classification() {
+        let report = explain(ParseInput {
+            raw: "421",
+            source: InputSource::Inline,
+        });
+
+        assert_eq!(report.category, FailureCategory::TemporaryFailure);
+        assert_eq!(report.recommended_action, RecommendedAction::RetryLater);
     }
 }

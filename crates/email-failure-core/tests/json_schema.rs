@@ -32,6 +32,44 @@ fn fixture_reports_match_failure_report_v0_1_schema() {
 }
 
 #[test]
+fn provider_payload_reports_match_failure_report_v0_1_schema() {
+    let schema = failure_report_schema();
+    let validator = jsonschema::validator_for(&schema).expect("failure report schema compiles");
+    let fixtures = [
+        (
+            "email.bounced invalid recipient",
+            include_str!("../fixtures/providers/resend/email-bounced-invalid-recipient.json"),
+        ),
+        (
+            "email.bounced authentication failure",
+            include_str!("../fixtures/providers/resend/email-bounced-authentication-failure.json"),
+        ),
+        (
+            "email.failed reached daily quota",
+            include_str!("../fixtures/providers/resend/email-failed-reached-daily-quota.json"),
+        ),
+        (
+            "Resend-like email.bounced temporary failure",
+            include_str!(
+                "../fixtures/providers/resend/email-bounced-temporary-failure-resend-like.json"
+            ),
+        ),
+    ];
+
+    for (name, raw) in fixtures {
+        let report = explain(ParseInput {
+            raw,
+            source: InputSource::Inline,
+        });
+        let report_json = serde_json::to_value(report).expect("report serializes");
+
+        if let Err(error) = validator.validate(&report_json) {
+            panic!("provider payload report should match schema for {name}: {error}");
+        }
+    }
+}
+
+#[test]
 fn schema_rejects_unexpected_report_fields() {
     let schema = failure_report_schema();
     let validator = jsonschema::validator_for(&schema).expect("failure report schema compiles");

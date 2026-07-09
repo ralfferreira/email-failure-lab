@@ -47,7 +47,7 @@ It is designed around a small pure Rust core and a CLI boundary:
 
 ## Project status
 
-Email Failure Lab is in early v0.1 development. The current scope is intentionally small: explain SMTP errors, bounce-like strings, and plain text files, including multiline snippets copied from logs or bounce notifications. Provider payloads, webhook simulation, DNS checks, Node bindings, and web demos are future milestones.
+Email Failure Lab has a focused v0.1 text-classification foundation. The v0.2 explain path adds local, deterministic normalization for supported Resend-style `email.bounced` and `email.failed` JSON payloads while preserving the existing report schema. Webhook simulation, provider API access, DNS checks, Node bindings, and web demos remain future milestones.
 
 ## Quickstart
 
@@ -62,6 +62,14 @@ Explain a plain text file:
 ```bash
 cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/raw/invalid-recipient.txt
 ```
+
+Explain a sanitized Resend-style webhook payload:
+
+```bash
+cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/providers/resend/email-bounced-invalid-recipient.json --json
+```
+
+Provider JSON support is intentionally narrow: v0.2 recognizes the documented `email.bounced` and `email.failed` failure fields, ignores unrelated metadata, and makes no API calls. Valid but unsupported JSON returns an `unknown` report; malformed JSON continues through the existing plain-text classifier.
 
 Pipe one-line or multiline failure text from stdin:
 
@@ -140,10 +148,10 @@ The workspace has two crates:
 - `email-failure-core`: pure deterministic rules. It performs no file I/O, terminal output, network access, environment access, or CLI-specific work.
 - `email-failure-cli`: effect boundary. It parses arguments, reads files, formats output, and maps errors to exit codes.
 
-The v0.1 pipeline is:
+The explain pipeline is:
 
 ```txt
-input -> parse signals -> classify category -> infer bounce type -> recommend action -> build report
+input -> normalize supported provider JSON -> parse signals -> classify category -> infer bounce type -> recommend action -> build report
 ```
 
 ## Repository layout
