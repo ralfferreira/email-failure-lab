@@ -120,8 +120,7 @@ fn is_path_like(input: &str) -> bool {
 }
 
 fn looks_like_inline_json(input: &str) -> bool {
-    matches!(input.trim_start().chars().next(), Some('{' | '['))
-        || serde_json::from_str::<serde_json::Value>(input).is_ok()
+    matches!(input.trim_start().chars().next(), Some('{' | '[' | '"'))
 }
 
 fn has_supported_input_file_extension(input: &str) -> bool {
