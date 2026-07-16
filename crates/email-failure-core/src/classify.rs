@@ -4,6 +4,7 @@ use crate::model::{BounceType, FailureCategory, ParsedFailure, SignalKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PhraseRule {
+    pub id: &'static str,
     pub phrase: &'static str,
     pub category: FailureCategory,
     pub strong: bool,
@@ -16,8 +17,14 @@ impl PhraseRule {
         PHRASE_RULES
     }
 
-    const fn strong(phrase: &'static str, category: FailureCategory, priority: u8) -> Self {
+    const fn strong(
+        id: &'static str,
+        phrase: &'static str,
+        category: FailureCategory,
+        priority: u8,
+    ) -> Self {
         Self {
+            id,
             phrase,
             category,
             strong: true,
@@ -25,8 +32,14 @@ impl PhraseRule {
         }
     }
 
-    const fn weak(phrase: &'static str, category: FailureCategory, priority: u8) -> Self {
+    const fn weak(
+        id: &'static str,
+        phrase: &'static str,
+        category: FailureCategory,
+        priority: u8,
+    ) -> Self {
         Self {
+            id,
             phrase,
             category,
             strong: false,
@@ -35,72 +48,284 @@ impl PhraseRule {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct EnhancedStatusRule {
+    id: &'static str,
+    code: &'static str,
+    category: FailureCategory,
+}
+
+impl EnhancedStatusRule {
+    fn all() -> &'static [Self] {
+        ENHANCED_STATUS_RULES
+    }
+
+    const fn new(id: &'static str, code: &'static str, category: FailureCategory) -> Self {
+        Self { id, code, category }
+    }
+}
+
 static PHRASE_RULES: &[PhraseRule] = &[
     PhraseRule::strong(
+        "phrase.content_rejected.message_rejected_as_spam",
         "message rejected as spam",
         FailureCategory::ContentRejected,
         100,
     ),
-    PhraseRule::strong("classified as spam", FailureCategory::ContentRejected, 100),
-    PhraseRule::strong("content rejected", FailureCategory::ContentRejected, 100),
-    PhraseRule::strong("spam content", FailureCategory::ContentRejected, 100),
-    PhraseRule::strong("spam detected", FailureCategory::ContentRejected, 100),
-    PhraseRule::strong("identified as spam", FailureCategory::ContentRejected, 100),
     PhraseRule::strong(
+        "phrase.content_rejected.classified_as_spam",
+        "classified as spam",
+        FailureCategory::ContentRejected,
+        100,
+    ),
+    PhraseRule::strong(
+        "phrase.content_rejected.content_rejected",
+        "content rejected",
+        FailureCategory::ContentRejected,
+        100,
+    ),
+    PhraseRule::strong(
+        "phrase.content_rejected.spam_content",
+        "spam content",
+        FailureCategory::ContentRejected,
+        100,
+    ),
+    PhraseRule::strong(
+        "phrase.content_rejected.spam_detected",
+        "spam detected",
+        FailureCategory::ContentRejected,
+        100,
+    ),
+    PhraseRule::strong(
+        "phrase.content_rejected.identified_as_spam",
+        "identified as spam",
+        FailureCategory::ContentRejected,
+        100,
+    ),
+    PhraseRule::strong(
+        "phrase.authentication_failure.unauthenticated_email",
         "unauthenticated email",
         FailureCategory::AuthenticationFailure,
         95,
     ),
     PhraseRule::strong(
+        "phrase.authentication_failure.this_mail_is_unauthenticated",
         "this mail is unauthenticated",
         FailureCategory::AuthenticationFailure,
         95,
     ),
-    PhraseRule::strong("spf fail", FailureCategory::AuthenticationFailure, 95),
-    PhraseRule::strong("dkim fail", FailureCategory::AuthenticationFailure, 95),
-    PhraseRule::strong("dmarc fail", FailureCategory::AuthenticationFailure, 95),
-    PhraseRule::strong("user unknown", FailureCategory::InvalidRecipient, 90),
     PhraseRule::strong(
+        "phrase.authentication_failure.spf_fail",
+        "spf fail",
+        FailureCategory::AuthenticationFailure,
+        95,
+    ),
+    PhraseRule::strong(
+        "phrase.authentication_failure.dkim_fail",
+        "dkim fail",
+        FailureCategory::AuthenticationFailure,
+        95,
+    ),
+    PhraseRule::strong(
+        "phrase.authentication_failure.dmarc_fail",
+        "dmarc fail",
+        FailureCategory::AuthenticationFailure,
+        95,
+    ),
+    PhraseRule::strong(
+        "phrase.invalid_recipient.user_unknown",
+        "user unknown",
+        FailureCategory::InvalidRecipient,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.invalid_recipient.recipient_address_rejected",
         "recipient address rejected",
         FailureCategory::InvalidRecipient,
         90,
     ),
-    PhraseRule::strong("mailbox unavailable", FailureCategory::InvalidRecipient, 90),
-    PhraseRule::strong("mailbox disabled", FailureCategory::InvalidRecipient, 90),
-    PhraseRule::strong("no such user", FailureCategory::InvalidRecipient, 90),
-    PhraseRule::strong("mailbox full", FailureCategory::MailboxFull, 90),
-    PhraseRule::strong("quota exceeded", FailureCategory::MailboxFull, 90),
-    PhraseRule::strong("over quota", FailureCategory::MailboxFull, 90),
-    PhraseRule::strong("rate limited", FailureCategory::RateLimited, 90),
-    PhraseRule::strong("rate limit exceeded", FailureCategory::RateLimited, 90),
-    PhraseRule::strong("too many messages", FailureCategory::RateLimited, 90),
-    PhraseRule::strong("throttled", FailureCategory::RateLimited, 90),
-    PhraseRule::strong("temporary failure", FailureCategory::TemporaryFailure, 80),
     PhraseRule::strong(
+        "phrase.invalid_recipient.mailbox_unavailable",
+        "mailbox unavailable",
+        FailureCategory::InvalidRecipient,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.invalid_recipient.mailbox_disabled",
+        "mailbox disabled",
+        FailureCategory::InvalidRecipient,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.invalid_recipient.no_such_user",
+        "no such user",
+        FailureCategory::InvalidRecipient,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.mailbox_full.mailbox_full",
+        "mailbox full",
+        FailureCategory::MailboxFull,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.mailbox_full.quota_exceeded",
+        "quota exceeded",
+        FailureCategory::MailboxFull,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.mailbox_full.over_quota",
+        "over quota",
+        FailureCategory::MailboxFull,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.rate_limited.rate_limited",
+        "rate limited",
+        FailureCategory::RateLimited,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.rate_limited.rate_limit_exceeded",
+        "rate limit exceeded",
+        FailureCategory::RateLimited,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.rate_limited.too_many_messages",
+        "too many messages",
+        FailureCategory::RateLimited,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.rate_limited.throttled",
+        "throttled",
+        FailureCategory::RateLimited,
+        90,
+    ),
+    PhraseRule::strong(
+        "phrase.temporary_failure.temporary_failure",
+        "temporary failure",
+        FailureCategory::TemporaryFailure,
+        80,
+    ),
+    PhraseRule::strong(
+        "phrase.temporary_failure.temporary_system_problem",
         "temporary system problem",
         FailureCategory::TemporaryFailure,
         80,
     ),
     PhraseRule::strong(
+        "phrase.temporary_failure.temporarily_unavailable",
         "temporarily unavailable",
         FailureCategory::TemporaryFailure,
         80,
     ),
     PhraseRule::strong(
+        "phrase.temporary_failure.temporarily_deferred",
         "temporarily deferred",
         FailureCategory::TemporaryFailure,
         80,
     ),
-    PhraseRule::strong("try again later", FailureCategory::TemporaryFailure, 80),
-    PhraseRule::strong("provider error", FailureCategory::ProviderError, 80),
-    PhraseRule::strong("internal error", FailureCategory::ProviderError, 80),
-    PhraseRule::strong("upstream error", FailureCategory::ProviderError, 80),
-    PhraseRule::weak("rejected by policy", FailureCategory::PolicyRejection, 70),
-    PhraseRule::weak("access denied", FailureCategory::PolicyRejection, 70),
-    PhraseRule::weak("block list", FailureCategory::PolicyRejection, 70),
-    PhraseRule::weak("not accepted", FailureCategory::PolicyRejection, 60),
-    PhraseRule::weak("blocked", FailureCategory::PolicyRejection, 60),
-    PhraseRule::weak("message rejected", FailureCategory::PolicyRejection, 50),
+    PhraseRule::strong(
+        "phrase.temporary_failure.try_again_later",
+        "try again later",
+        FailureCategory::TemporaryFailure,
+        80,
+    ),
+    PhraseRule::strong(
+        "phrase.provider_error.provider_error",
+        "provider error",
+        FailureCategory::ProviderError,
+        80,
+    ),
+    PhraseRule::strong(
+        "phrase.provider_error.internal_error",
+        "internal error",
+        FailureCategory::ProviderError,
+        80,
+    ),
+    PhraseRule::strong(
+        "phrase.provider_error.upstream_error",
+        "upstream error",
+        FailureCategory::ProviderError,
+        80,
+    ),
+    PhraseRule::weak(
+        "phrase.policy_rejection.rejected_by_policy",
+        "rejected by policy",
+        FailureCategory::PolicyRejection,
+        70,
+    ),
+    PhraseRule::weak(
+        "phrase.policy_rejection.access_denied",
+        "access denied",
+        FailureCategory::PolicyRejection,
+        70,
+    ),
+    PhraseRule::weak(
+        "phrase.policy_rejection.block_list",
+        "block list",
+        FailureCategory::PolicyRejection,
+        70,
+    ),
+    PhraseRule::weak(
+        "phrase.policy_rejection.not_accepted",
+        "not accepted",
+        FailureCategory::PolicyRejection,
+        60,
+    ),
+    PhraseRule::weak(
+        "phrase.policy_rejection.blocked",
+        "blocked",
+        FailureCategory::PolicyRejection,
+        60,
+    ),
+    PhraseRule::weak(
+        "phrase.policy_rejection.message_rejected",
+        "message rejected",
+        FailureCategory::PolicyRejection,
+        50,
+    ),
+];
+
+static ENHANCED_STATUS_RULES: &[EnhancedStatusRule] = &[
+    EnhancedStatusRule::new(
+        "enhanced_status.invalid_recipient.5_1_1",
+        "5.1.1",
+        FailureCategory::InvalidRecipient,
+    ),
+    EnhancedStatusRule::new(
+        "enhanced_status.invalid_recipient.5_2_1",
+        "5.2.1",
+        FailureCategory::InvalidRecipient,
+    ),
+    EnhancedStatusRule::new(
+        "enhanced_status.mailbox_full.5_2_2",
+        "5.2.2",
+        FailureCategory::MailboxFull,
+    ),
+    EnhancedStatusRule::new(
+        "enhanced_status.policy_rejection.5_7_1",
+        "5.7.1",
+        FailureCategory::PolicyRejection,
+    ),
+    EnhancedStatusRule::new(
+        "enhanced_status.authentication_failure.5_7_26",
+        "5.7.26",
+        FailureCategory::AuthenticationFailure,
+    ),
+    EnhancedStatusRule::new(
+        "enhanced_status.temporary_failure.4_7_0",
+        "4.7.0",
+        FailureCategory::TemporaryFailure,
+    ),
+    EnhancedStatusRule::new(
+        "enhanced_status.temporary_failure.4_3_0",
+        "4.3.0",
+        FailureCategory::TemporaryFailure,
+    ),
 ];
 
 #[must_use]
@@ -148,24 +373,31 @@ pub fn category_for_smtp_code(code: &str) -> Option<FailureCategory> {
 
 #[must_use]
 pub fn category_for_enhanced_status(code: &str) -> Option<FailureCategory> {
-    match code {
-        "5.1.1" => Some(FailureCategory::InvalidRecipient),
-        "5.2.1" => Some(FailureCategory::InvalidRecipient),
-        "5.2.2" => Some(FailureCategory::MailboxFull),
-        "5.7.1" => Some(FailureCategory::PolicyRejection),
-        "5.7.26" => Some(FailureCategory::AuthenticationFailure),
-        "4.7.0" => Some(FailureCategory::TemporaryFailure),
-        "4.3.0" => Some(FailureCategory::TemporaryFailure),
-        _ => None,
-    }
+    enhanced_status_rule_for(code).map(|rule| rule.category)
 }
 
 #[must_use]
 pub fn category_for_phrase(phrase: &str) -> Option<FailureCategory> {
-    PhraseRule::all()
+    phrase_rule_for(phrase).map(|rule| rule.category)
+}
+
+#[must_use]
+pub fn rule_id_for_signal(kind: SignalKind, value: &str) -> Option<&'static str> {
+    match kind {
+        SignalKind::SmtpCode => None,
+        SignalKind::EnhancedStatusCode => enhanced_status_rule_for(value).map(|rule| rule.id),
+        SignalKind::MatchedPhrase => phrase_rule_for(value).map(|rule| rule.id),
+    }
+}
+
+fn phrase_rule_for(phrase: &str) -> Option<&'static PhraseRule> {
+    PhraseRule::all().iter().find(|rule| rule.phrase == phrase)
+}
+
+fn enhanced_status_rule_for(code: &str) -> Option<&'static EnhancedStatusRule> {
+    EnhancedStatusRule::all()
         .iter()
-        .find(|rule| rule.phrase == phrase)
-        .map(|rule| rule.category)
+        .find(|rule| rule.code == code)
 }
 
 #[must_use]
@@ -184,16 +416,13 @@ pub fn signal_categories(parsed: &ParsedFailure) -> HashMap<FailureCategory, u16
 
 fn signal_specificity(kind: SignalKind, value: &str) -> u16 {
     match kind {
-        SignalKind::MatchedPhrase => PhraseRule::all()
-            .iter()
-            .find(|rule| rule.phrase == value)
-            .map_or(40, |rule| {
-                if rule.strong {
-                    u16::from(rule.priority)
-                } else {
-                    10
-                }
-            }),
+        SignalKind::MatchedPhrase => phrase_rule_for(value).map_or(40, |rule| {
+            if rule.strong {
+                u16::from(rule.priority)
+            } else {
+                10
+            }
+        }),
         SignalKind::EnhancedStatusCode => 30,
         SignalKind::SmtpCode => 10,
     }
@@ -204,21 +433,19 @@ fn strongest_strong_phrase_category(parsed: &ParsedFailure) -> Option<FailureCat
         .signals
         .iter()
         .filter(|signal| signal.kind == SignalKind::MatchedPhrase)
-        .filter_map(|signal| {
-            PhraseRule::all()
-                .iter()
-                .find(|rule| rule.phrase == signal.value && rule.strong)
-        })
+        .filter_map(|signal| phrase_rule_for(&signal.value).filter(|rule| rule.strong))
         .max_by_key(|rule| rule.priority)
         .map(|rule| rule.category)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::model::{FailureCategory, InputSource, ParseInput};
+    use std::collections::HashSet;
+
+    use crate::model::{FailureCategory, InputSource, ParseInput, SignalKind};
     use crate::parse::parse_failure;
 
-    use super::classify_failure;
+    use super::{classify_failure, rule_id_for_signal, EnhancedStatusRule, PhraseRule};
 
     fn category(raw: &str) -> FailureCategory {
         let parsed = parse_failure(ParseInput {
@@ -226,6 +453,19 @@ mod tests {
             source: InputSource::Inline,
         });
         classify_failure(&parsed)
+    }
+
+    fn assert_rule_ids<'a>(namespace: &str, ids: impl IntoIterator<Item = &'a str>) {
+        let mut unique_ids = HashSet::new();
+
+        for id in ids {
+            assert!(!id.is_empty(), "rule ID must not be empty");
+            assert!(
+                id.starts_with(namespace),
+                "unexpected rule ID namespace: {id}"
+            );
+            assert!(unique_ids.insert(id), "duplicate rule ID: {id}");
+        }
     }
 
     #[test]
@@ -251,5 +491,31 @@ mod tests {
     #[test]
     fn generic_smtp_550_is_unknown() {
         assert_eq!(category("550"), FailureCategory::Unknown);
+    }
+
+    #[test]
+    fn phrase_rule_ids_are_non_empty_unique_and_namespaced() {
+        assert_rule_ids("phrase.", PhraseRule::all().iter().map(|rule| rule.id));
+    }
+
+    #[test]
+    fn enhanced_status_rule_ids_are_non_empty_unique_and_namespaced() {
+        assert_rule_ids(
+            "enhanced_status.",
+            EnhancedStatusRule::all().iter().map(|rule| rule.id),
+        );
+    }
+
+    #[test]
+    fn representative_signal_values_resolve_to_stable_rule_ids() {
+        assert_eq!(
+            rule_id_for_signal(SignalKind::MatchedPhrase, "user unknown"),
+            Some("phrase.invalid_recipient.user_unknown")
+        );
+        assert_eq!(
+            rule_id_for_signal(SignalKind::EnhancedStatusCode, "5.7.26"),
+            Some("enhanced_status.authentication_failure.5_7_26")
+        );
+        assert_eq!(rule_id_for_signal(SignalKind::SmtpCode, "550"), None);
     }
 }

@@ -1,4 +1,5 @@
 use clap::ValueEnum;
+use email_failure_core::classify::rule_id_for_signal;
 use email_failure_core::{
     BounceType, ConfidenceLevel, FailureCategory, FailureReport, RecommendedAction, SignalKind,
 };
@@ -53,13 +54,16 @@ pub fn format_text(report: &FailureReport, verbose: bool) -> String {
     } else {
         for signal in &report.signals {
             if verbose {
+                let metadata = rule_id_for_signal(signal.kind, &signal.value).map_or_else(
+                    || format!("weight: {}", signal.weight),
+                    |rule_id| format!("weight: {}, rule_id: {rule_id}", signal.weight),
+                );
                 push_line(
                     &mut output,
                     format!(
-                        "- {}: {} (weight: {})",
+                        "- {}: {} ({metadata})",
                         display_signal_kind(signal.kind),
-                        signal.value,
-                        signal.weight
+                        signal.value
                     ),
                 );
             } else {
