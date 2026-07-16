@@ -88,6 +88,26 @@ fn schema_rejects_unexpected_report_fields() {
 }
 
 #[test]
+fn failure_report_v0_1_does_not_expose_rule_ids() {
+    let report = explain(ParseInput {
+        raw: "550 5.1.1 User unknown",
+        source: InputSource::Inline,
+    });
+    let report_json = serde_json::to_value(report).expect("report serializes");
+
+    for signal in report_json["signals"]
+        .as_array()
+        .expect("signals is an array")
+    {
+        let signal = signal.as_object().expect("signal is an object");
+        assert_eq!(signal.len(), 3, "v0.1 signals keep exactly three fields");
+        assert!(signal.contains_key("kind"));
+        assert!(signal.contains_key("value"));
+        assert!(signal.contains_key("weight"));
+    }
+}
+
+#[test]
 fn schema_rejects_inconsistent_confidence_level_and_score() {
     let schema = failure_report_schema();
     let validator = jsonschema::validator_for(&schema).expect("failure report schema compiles");

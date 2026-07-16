@@ -267,7 +267,9 @@ fn explains_inline_text_as_json() {
         .stdout(predicate::str::contains(
             r#""category": "invalid_recipient""#,
         ))
-        .stdout(predicate::str::contains(r#""bounceType": "hard""#));
+        .stdout(predicate::str::contains(r#""bounceType": "hard""#))
+        .stdout(predicate::str::contains("rule_id").not())
+        .stdout(predicate::str::contains("ruleId").not());
 }
 
 #[test]
@@ -293,12 +295,14 @@ fn verbose_output_includes_signal_weights() {
         .assert()
         .success()
         .stdout(predicate::str::contains("- smtp_code: 550 (weight: 20)"))
-        .stdout(predicate::str::contains(
-            "- enhanced_status_code: 5.1.1 (weight: 35)",
-        ))
-        .stdout(predicate::str::contains(
-            "- matched_phrase: user unknown (weight: 35)",
-        ));
+        .stdout(predicate::str::contains(concat!(
+            "- enhanced_status_code: 5.1.1 ",
+            "(weight: 35, rule_id: enhanced_status.invalid_recipient.5_1_1)"
+        )))
+        .stdout(predicate::str::contains(concat!(
+            "- matched_phrase: user unknown ",
+            "(weight: 35, rule_id: phrase.invalid_recipient.user_unknown)"
+        )));
 }
 
 #[test]

@@ -1,4 +1,5 @@
 use clap::ValueEnum;
+use email_failure_core::classify::rule_id_for_signal;
 use email_failure_core::{
     BounceType, ConfidenceLevel, FailureCategory, FailureReport, RecommendedAction, SignalKind,
 };
@@ -53,13 +54,16 @@ pub fn format_text(report: &FailureReport, verbose: bool) -> String {
     } else {
         for signal in &report.signals {
             if verbose {
+                let metadata = rule_id_for_signal(signal.kind, &signal.value).map_or_else(
+                    || format!("weight: {}", signal.weight),
+                    |rule_id| format!("weight: {}, rule_id: {rule_id}", signal.weight),
+                );
                 push_line(
                     &mut output,
                     format!(
-                        "- {}: {} (weight: {})",
+                        "- {}: {} ({metadata})",
                         display_signal_kind(signal.kind),
-                        signal.value,
-                        signal.weight
+                        signal.value
                     ),
                 );
             } else {
@@ -170,5 +174,24 @@ mod tests {
                 "- matched_phrase: user unknown\n",
             )
         );
+    }
+
+    #[test]
+    fn verbose_text_includes_rule_ids_without_adding_one_to_smtp_codes() {
+        let report = explain(ParseInput {
+            raw: "550 5.1.1 User unknown",
+            source: InputSource::Inline,
+        });
+        let output = format_text(&report, true);
+
+        assert!(output.contains("- smtp_code: 550 (weight: 20)"));
+        assert!(output.contains(concat!(
+            "- enhanced_status_code: 5.1.1 ",
+            "(weight: 35, rule_id: enhanced_status.invalid_recipient.5_1_1)"
+        )));
+        assert!(output.contains(concat!(
+            "- matched_phrase: user unknown ",
+            "(weight: 35, rule_id: phrase.invalid_recipient.user_unknown)"
+        )));
     }
 }
