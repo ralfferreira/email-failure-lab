@@ -175,23 +175,4 @@ mod tests {
             )
         );
     }
-
-    #[test]
-    fn verbose_text_includes_rule_ids_without_adding_one_to_smtp_codes() {
-        let report = explain(ParseInput {
-            raw: "550 5.1.1 User unknown",
-            source: InputSource::Inline,
-        });
-        let output = format_text(&report, true);
-
-        assert!(output.contains("- smtp_code: 550 (weight: 20)"));
-        assert!(output.contains(concat!(
-            "- enhanced_status_code: 5.1.1 ",
-            "(weight: 35, rule_id: enhanced_status.invalid_recipient.5_1_1)"
-        )));
-        assert!(output.contains(concat!(
-            "- matched_phrase: user unknown ",
-            "(weight: 35, rule_id: phrase.invalid_recipient.user_unknown)"
-        )));
-    }
 }

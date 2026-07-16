@@ -442,7 +442,7 @@ fn strongest_strong_phrase_category(parsed: &ParsedFailure) -> Option<FailureCat
 mod tests {
     use std::collections::HashSet;
 
-    use crate::model::{FailureCategory, InputSource, ParseInput};
+    use crate::model::{FailureCategory, InputSource, ParseInput, SignalKind};
     use crate::parse::parse_failure;
 
     use super::{classify_failure, rule_id_for_signal, EnhancedStatusRule, PhraseRule};
@@ -453,6 +453,19 @@ mod tests {
             source: InputSource::Inline,
         });
         classify_failure(&parsed)
+    }
+
+    fn assert_rule_ids<'a>(namespace: &str, ids: impl IntoIterator<Item = &'a str>) {
+        let mut unique_ids = HashSet::new();
+
+        for id in ids {
+            assert!(!id.is_empty(), "rule ID must not be empty");
+            assert!(
+                id.starts_with(namespace),
+                "unexpected rule ID namespace: {id}"
+            );
+            assert!(unique_ids.insert(id), "duplicate rule ID: {id}");
+        }
     }
 
     #[test]
@@ -482,59 +495,27 @@ mod tests {
 
     #[test]
     fn phrase_rule_ids_are_non_empty_unique_and_namespaced() {
-        let mut ids = HashSet::new();
-
-        for rule in PhraseRule::all() {
-            assert!(
-                !rule.id.is_empty(),
-                "phrase rule for {:?} has no ID",
-                rule.phrase
-            );
-            assert!(
-                rule.id.starts_with("phrase."),
-                "unexpected phrase rule ID: {}",
-                rule.id
-            );
-            assert!(ids.insert(rule.id), "duplicate phrase rule ID: {}", rule.id);
-        }
+        assert_rule_ids("phrase.", PhraseRule::all().iter().map(|rule| rule.id));
     }
 
     #[test]
     fn enhanced_status_rule_ids_are_non_empty_unique_and_namespaced() {
-        let mut ids = HashSet::new();
-
-        for rule in EnhancedStatusRule::all() {
-            assert!(
-                !rule.id.is_empty(),
-                "enhanced-status rule for {:?} has no ID",
-                rule.code
-            );
-            assert!(
-                rule.id.starts_with("enhanced_status."),
-                "unexpected enhanced-status rule ID: {}",
-                rule.id
-            );
-            assert!(
-                ids.insert(rule.id),
-                "duplicate enhanced-status rule ID: {}",
-                rule.id
-            );
-        }
+        assert_rule_ids(
+            "enhanced_status.",
+            EnhancedStatusRule::all().iter().map(|rule| rule.id),
+        );
     }
 
     #[test]
     fn representative_signal_values_resolve_to_stable_rule_ids() {
         assert_eq!(
-            rule_id_for_signal(crate::model::SignalKind::MatchedPhrase, "user unknown"),
+            rule_id_for_signal(SignalKind::MatchedPhrase, "user unknown"),
             Some("phrase.invalid_recipient.user_unknown")
         );
         assert_eq!(
-            rule_id_for_signal(crate::model::SignalKind::EnhancedStatusCode, "5.7.26"),
+            rule_id_for_signal(SignalKind::EnhancedStatusCode, "5.7.26"),
             Some("enhanced_status.authentication_failure.5_7_26")
         );
-        assert_eq!(
-            rule_id_for_signal(crate::model::SignalKind::SmtpCode, "550"),
-            None
-        );
+        assert_eq!(rule_id_for_signal(SignalKind::SmtpCode, "550"), None);
     }
 }
