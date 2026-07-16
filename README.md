@@ -197,6 +197,25 @@ On Windows, the default MSVC toolchain requires Visual Studio Build Tools with t
 cargo +1.85.0-x86_64-pc-windows-gnu test --workspace
 ```
 
+### Benchmarks
+
+Run the complete benchmark suite locally with:
+
+```bash
+cargo bench
+```
+
+To run only the core benchmark target, or compile all benchmark targets without executing them:
+
+```bash
+cargo bench -p email-failure-core --bench failure_paths
+cargo bench --no-run
+```
+
+The suite measures parsing and full explanation separately for a short SMTP failure, a realistic multiline bounce-like fixture, and the canonical table-driven fixture corpus. Full explanation includes provider normalization, parsing, classification, recommendation, confidence calculation, and report construction. The corpus file is compiled into the benchmark binary, and JSON deserialization happens before measurement, so the corpus cases measure the in-memory production paths rather than disk or setup work.
+
+Benchmark results vary with the machine, build environment, and system load. Use them for relative comparisons and regression investigation on a consistent environment, not as absolute production latency or throughput guarantees.
+
 ## Contributing
 
 Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, scope, testing expectations, and PR guidelines.
