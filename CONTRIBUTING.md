@@ -6,15 +6,16 @@ This project is early, so the best contributions are small, tested, and focused 
 
 ## Project scope
 
-The v0.1 scope is intentionally narrow:
+The current scope is intentionally narrow:
 
 - parse SMTP errors and bounce-like text
+- normalize the supported Resend-style provider payload fields locally
 - classify deterministic failure categories
 - produce polished text output
 - produce stable JSON output
-- maintain realistic fixtures and tests
+- maintain realistic fixtures, tests, and benchmarks
 
-Please do not add DNS checks, webhook simulation, provider API integrations, Node bindings, web apps, telemetry, databases, or full MIME parsing in v0.1 unless an issue explicitly accepts that scope.
+Read [ROADMAP.md](ROADMAP.md) before proposing milestone work. DNS checks, webhook simulation, provider API integrations, Node bindings, web apps, telemetry, databases, full MIME parsing, and other scope expansions require an accepted issue or RFC before implementation.
 
 ## Development setup
 
@@ -57,6 +58,8 @@ Before opening a PR:
 - add fixtures for new failure patterns
 - keep the PR focused on one behavior or milestone
 
+Maintainers preparing a versioned GitHub release should follow the [release checklist](docs/release-checklist.md).
+
 ## Commit and PR style
 
 Use clear, product-facing names. Good examples:
@@ -69,5 +72,9 @@ Avoid names that describe the tool or process used to make the change.
 
 ## Code of conduct
 
-Be direct, kind, and specific. Assume good intent, explain tradeoffs clearly, and keep discussions focused on improving the project.
+All contributors must follow the project [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+Do not disclose suspected vulnerabilities in a public issue. Follow the private reporting instructions in [SECURITY.md](SECURITY.md).
 
