@@ -47,7 +47,9 @@ It is designed around a small pure Rust core and a CLI boundary:
 
 ## Project status
 
-Email Failure Lab has a focused v0.1 text-classification foundation. The v0.2 explain path adds local, deterministic normalization for supported Resend-style `email.bounced` and `email.failed` JSON payloads while preserving the existing report schema. Webhook simulation, provider API access, DNS checks, Node bindings, and web demos remain future milestones.
+Email Failure Lab has a focused v0.1 text-classification foundation. The current v0.2 work adds local, deterministic normalization for supported Resend-style `email.bounced` and `email.failed` JSON payloads while preserving the existing report schema. No version has been tagged or published yet.
+
+See [ROADMAP.md](ROADMAP.md) for delivered capabilities, upcoming milestones, and explicit scope boundaries.
 
 ## Quickstart
 
@@ -176,10 +178,22 @@ crates/
   email-failure-core/  # pure parsing, classification, recommendations, reports
   email-failure-cli/   # CLI args, file input, text/JSON output
 docs/
-  failure-categories.md
+  failure-categories.md   # category and app-handling reference
+  release-checklist.md    # maintainer release workflow
 schemas/
   failure-report.v0.1.json
 ```
+
+## Project documentation
+
+- [Roadmap](ROADMAP.md)
+- [Failure categories](docs/failure-categories.md)
+- [FailureReport JSON schema](schemas/failure-report.v0.1.json)
+- [Changelog](CHANGELOG.md)
+- [Release checklist](docs/release-checklist.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
 
 ## Development
 
@@ -187,8 +201,8 @@ Email Failure Lab currently supports Rust 1.85 or newer. The repository includes
 
 ```bash
 cargo fmt --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
 ```
 
 On Windows, the default MSVC toolchain requires Visual Studio Build Tools with the C++ linker installed. The project also validates with the GNU Rust toolchain:
@@ -218,11 +232,13 @@ Benchmark results vary with the machine, build environment, and system load. Use
 
 ## Contributing
 
-Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, scope, testing expectations, and PR guidelines.
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, scope, testing expectations, and PR guidelines. Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## v0.1 non-goals
+Report suspected vulnerabilities privately by following the [security policy](SECURITY.md), not through a public issue.
 
-Email Failure Lab v0.1 does not include DNS Doctor, webhook simulation, provider API integration, Node bindings, TypeScript packages, Next.js examples, telemetry, databases, or full `.eml`/MIME parsing.
+## Scope boundaries
+
+Provider API access, webhook simulation, DNS checks, Node bindings, hosted services, telemetry, databases, and full MIME parsing are not part of the current implementation. The [roadmap](ROADMAP.md) separates planned milestones from explicit non-goals.
 
 ## License
 
