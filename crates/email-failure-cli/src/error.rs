@@ -18,6 +18,8 @@ pub enum CliError {
     MissingFile(PathBuf),
     #[error("unknown fixture '{0}'; run 'email-lab fixtures list' to see available fixtures")]
     UnknownFixture(String),
+    #[error("could not write output: {0}")]
+    WriteOutput(#[source] std::io::Error),
     #[error("could not serialize report as JSON: {0}")]
     Json(#[from] serde_json::Error),
 }

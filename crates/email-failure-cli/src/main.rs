@@ -15,6 +15,9 @@ use crate::error::CliError;
     about = "Explain transactional email failures from SMTP, bounce-like text, and provider webhook JSON."
 )]
 struct Cli {
+    /// Disable color in text output.
+    #[arg(long, global = true)]
+    no_color: bool,
     #[command(subcommand)]
     command: Command,
 }
@@ -38,7 +41,7 @@ fn run() -> Result<(), CliError> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Explain(args) => run_explain(args),
+        Command::Explain(args) => run_explain(args, cli.no_color),
         Command::Fixtures(args) => run_fixtures(args),
     }
 }

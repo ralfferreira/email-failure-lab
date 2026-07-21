@@ -141,6 +141,7 @@ cargo run -p email-failure-cli -- explain "550 5.1.1 User unknown" --json
 
 The JSON output contract is documented in [schemas/failure-report.v0.1.json](schemas/failure-report.v0.1.json).
 Use `--verbose` with text output to include signal weights and internal rule IDs for matched phrase and enhanced-status rules. Rule IDs are diagnostic metadata and are not part of JSON v0.1.
+Text output uses color automatically when stdout is a compatible terminal. Pass `--no-color` or set a non-empty [`NO_COLOR`](https://no-color.org/) environment variable to keep it plain. Piped and redirected output is plain by default, and JSON output never includes terminal styling.
 
 Multiline input is normalized as plain text before classification, so signals can appear on different lines. Full `.eml`, MIME, attachment, and DSN parsing remain out of scope for v0.1; `.eml` files are treated as plain UTF-8 text.
 

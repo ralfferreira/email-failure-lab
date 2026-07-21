@@ -26,11 +26,16 @@ const EXPECTED_BUILT_IN_FIXTURES: &[(&str, &str)] = &[
     ("resend-temporary-failure", "temporary_failure"),
 ];
 
+/// Build a CLI command with color forcing cleared so plain-text assertions stay stable.
+fn email_lab() -> Command {
+    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    command.env_remove("CLICOLOR_FORCE");
+    command
+}
+
 #[test]
 fn explains_inline_text() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
-
-    command
+    email_lab()
         .args(["explain", "550 5.1.1 User unknown"])
         .assert()
         .success()
@@ -38,12 +43,13 @@ fn explains_inline_text() {
         .stdout(predicate::str::contains(
             "Recommended action: Suppress recipient",
         ))
-        .stdout(predicate::str::contains("matched_phrase: user unknown"));
+        .stdout(predicate::str::contains("matched_phrase: user unknown"))
+        .stdout(predicate::str::contains("\x1b[").not());
 }
 
 #[test]
 fn root_help_mentions_provider_webhook_json() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .arg("--help")
@@ -54,7 +60,7 @@ fn root_help_mentions_provider_webhook_json() {
 
 #[test]
 fn root_help_lists_fixture_discovery() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .arg("--help")
@@ -67,7 +73,7 @@ fn root_help_lists_fixture_discovery() {
 
 #[test]
 fn fixtures_help_lists_list_and_show_subcommands() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["fixtures", "--help"])
@@ -87,7 +93,7 @@ fn fixtures_help_lists_list_and_show_subcommands() {
 #[test]
 fn lists_all_built_in_fixtures_in_sorted_order_from_any_working_directory() {
     let temp_dir = tempfile::tempdir().expect("temp dir");
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .current_dir(temp_dir.path())
@@ -101,7 +107,7 @@ fn lists_all_built_in_fixtures_in_sorted_order_from_any_working_directory() {
 #[test]
 fn shows_invalid_recipient_input_and_expected_metadata_from_any_working_directory() {
     let temp_dir = tempfile::tempdir().expect("temp dir");
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .current_dir(temp_dir.path())
@@ -121,7 +127,7 @@ fn shows_invalid_recipient_input_and_expected_metadata_from_any_working_director
 
 #[test]
 fn shows_provider_fixture_input_and_expected_metadata() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["fixtures", "show", "resend-daily-quota"])
@@ -141,7 +147,7 @@ fn shows_provider_fixture_input_and_expected_metadata() {
 #[test]
 fn unknown_fixture_is_a_clear_error_with_a_list_hint() {
     let temp_dir = tempfile::tempdir().expect("temp dir");
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .current_dir(temp_dir.path())
@@ -156,7 +162,7 @@ fn unknown_fixture_is_a_clear_error_with_a_list_hint() {
 
 #[test]
 fn fixture_show_requires_a_name() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["fixtures", "show"])
@@ -170,7 +176,7 @@ fn fixture_show_requires_a_name() {
 
 #[test]
 fn explain_help_mentions_provider_webhook_json() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "--help"])
@@ -180,8 +186,68 @@ fn explain_help_mentions_provider_webhook_json() {
 }
 
 #[test]
+fn explain_help_documents_plain_text_opt_out() {
+    let mut command = email_lab();
+
+    command
+        .args(["explain", "--help"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--no-color"))
+        .stdout(predicate::str::contains("Disable color in text output"));
+}
+
+#[test]
+fn forced_color_styles_key_result_fields() {
+    let mut command = email_lab();
+
+    command
+        .env("CLICOLOR_FORCE", "1")
+        .env_remove("NO_COLOR")
+        .args(["explain", "550 5.1.1 User unknown"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(concat!(
+            "\x1b[1mFailure\x1b[0m: ",
+            "\x1b[95mInvalid recipient\x1b[0m"
+        )))
+        .stdout(predicate::str::contains(concat!(
+            "\x1b[1mRecommended action\x1b[0m: ",
+            "\x1b[96mSuppress recipient\x1b[0m"
+        )));
+}
+
+#[test]
+fn no_color_flag_overrides_forced_color() {
+    let mut command = email_lab();
+
+    command
+        .env("CLICOLOR_FORCE", "1")
+        .env_remove("NO_COLOR")
+        .args(["--no-color", "explain", "550 5.1.1 User unknown"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Failure: Invalid recipient"))
+        .stdout(predicate::str::contains("\x1b[").not());
+}
+
+#[test]
+fn no_color_environment_variable_disables_color() {
+    let mut command = email_lab();
+
+    command
+        .env("CLICOLOR_FORCE", "1")
+        .env("NO_COLOR", "1")
+        .args(["explain", "550 5.1.1 User unknown"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Failure: Invalid recipient"))
+        .stdout(predicate::str::contains("\x1b[").not());
+}
+
+#[test]
 fn explains_inline_provider_webhook_json() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", RESEND_BOUNCED_INVALID_RECIPIENT, "--json"])
@@ -206,7 +272,7 @@ fn inline_provider_json_with_url_is_not_treated_as_a_path() {
         }
       }
     }"#;
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", payload, "--json"])
@@ -220,7 +286,7 @@ fn inline_provider_json_with_url_is_not_treated_as_a_path() {
 #[test]
 fn unsupported_inline_provider_json_returns_unknown_report() {
     let payload = r#"{"type":"email.delivered","data":{"subject":"550 5.1.1 User unknown"}}"#;
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", payload, "--json"])
@@ -233,7 +299,7 @@ fn unsupported_inline_provider_json_returns_unknown_report() {
 #[test]
 fn inline_json_array_with_url_is_not_treated_as_a_path() {
     let payload = r#"[{"url":"https://example.com/failures/123"}]"#;
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", payload, "--json"])
@@ -245,7 +311,7 @@ fn inline_json_array_with_url_is_not_treated_as_a_path() {
 #[test]
 fn inline_json_string_with_url_returns_unknown_report() {
     let payload = r#""https://example.com/failures/550""#;
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", payload, "--json"])
@@ -257,7 +323,7 @@ fn inline_json_string_with_url_returns_unknown_report() {
 
 #[test]
 fn explains_inline_text_as_json() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "550 5.1.1 User unknown", "--json"])
@@ -273,8 +339,31 @@ fn explains_inline_text_as_json() {
 }
 
 #[test]
+fn json_output_is_byte_for_byte_unchanged_when_color_is_forced() {
+    let args = ["explain", "550 5.1.1 User unknown", "--json"];
+    let plain = email_lab()
+        .env_remove("NO_COLOR")
+        .args(args)
+        .output()
+        .expect("plain command runs");
+    let forced_color = Command::cargo_bin("email-lab")
+        .expect("binary exists")
+        .env("CLICOLOR_FORCE", "1")
+        .env_remove("NO_COLOR")
+        .args(args)
+        .output()
+        .expect("forced-color command runs");
+
+    assert!(plain.status.success());
+    assert!(forced_color.status.success());
+    assert_eq!(forced_color.stdout, plain.stdout);
+    assert_eq!(forced_color.stderr, plain.stderr);
+    assert!(!plain.stdout.contains(&0x1b));
+}
+
+#[test]
 fn explains_inline_text_with_format_json() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "550 5.1.1 User unknown", "--format", "json"])
@@ -288,9 +377,7 @@ fn explains_inline_text_with_format_json() {
 
 #[test]
 fn verbose_output_includes_signal_weights() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
-
-    command
+    email_lab()
         .args(["explain", "550 5.1.1 User unknown", "--verbose"])
         .assert()
         .success()
@@ -307,13 +394,12 @@ fn verbose_output_includes_signal_weights() {
 
 #[test]
 fn explains_file_input() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
     let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(Path::parent)
         .expect("workspace root");
 
-    command
+    email_lab()
         .current_dir(workspace_root)
         .args([
             "explain",
@@ -326,13 +412,12 @@ fn explains_file_input() {
 
 #[test]
 fn explains_plain_eml_file_as_text() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
     let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(Path::parent)
         .expect("workspace root");
 
-    command
+    email_lab()
         .current_dir(workspace_root)
         .args([
             "explain",
@@ -349,7 +434,7 @@ fn explains_provider_webhook_json_file() {
     let path = temp_dir.path().join("resend-bounced.json");
     fs::write(&path, RESEND_BOUNCED_INVALID_RECIPIENT).expect("write JSON fixture");
 
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", path.to_str().expect("path is UTF-8"), "--json"])
@@ -362,9 +447,7 @@ fn explains_provider_webhook_json_file() {
 
 #[test]
 fn explains_stdin_input() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
-
-    command
+    email_lab()
         .args(["explain", "-"])
         .write_stdin("550 5.1.1 User unknown")
         .assert()
@@ -374,7 +457,7 @@ fn explains_stdin_input() {
 
 #[test]
 fn explains_stdin_input_as_json() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "-", "--json"])
@@ -388,7 +471,7 @@ fn explains_stdin_input_as_json() {
 
 #[test]
 fn explains_provider_webhook_json_from_stdin() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "-", "--json"])
@@ -402,7 +485,7 @@ fn explains_provider_webhook_json_from_stdin() {
 
 #[test]
 fn empty_stdin_input_is_an_error() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "-"])
@@ -414,7 +497,7 @@ fn empty_stdin_input_is_an_error() {
 
 #[test]
 fn missing_path_like_input_is_an_error() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "./missing-bounce.txt"])
@@ -425,7 +508,7 @@ fn missing_path_like_input_is_an_error() {
 
 #[test]
 fn missing_json_input_is_an_error() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "missing-resend-webhook.json"])
@@ -437,7 +520,7 @@ fn missing_json_input_is_an_error() {
 
 #[test]
 fn empty_input_is_an_error() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "   "])
@@ -452,7 +535,7 @@ fn non_utf8_file_input_is_a_clear_error() {
     let path = temp_dir.path().join("bounce.txt");
     fs::write(&path, [0xff, 0xfe, 0xfd]).expect("write invalid UTF-8 fixture");
 
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", path.to_str().expect("path is UTF-8")])
@@ -464,7 +547,7 @@ fn non_utf8_file_input_is_a_clear_error() {
 
 #[test]
 fn non_utf8_stdin_input_is_a_clear_error() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "-"])
@@ -476,7 +559,7 @@ fn non_utf8_stdin_input_is_a_clear_error() {
 
 #[test]
 fn enhanced_status_dots_are_treated_as_inline_input() {
-    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+    let mut command = email_lab();
 
     command
         .args(["explain", "5.1.1"])

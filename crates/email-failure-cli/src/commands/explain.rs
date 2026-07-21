@@ -1,12 +1,13 @@
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 
+use anstream::{AutoStream, ColorChoice};
 use clap::Args;
-use email_failure_core::{explain, InputSource, ParseInput};
+use email_failure_core::{explain, FailureReport, InputSource, ParseInput};
 
 use crate::error::CliError;
-use crate::output::{format_json, format_text, OutputFormat};
+use crate::output::{format_json, format_text, OutputFormat, TextStyle};
 
 #[derive(Debug, Args)]
 pub struct ExplainArgs {
@@ -23,7 +24,7 @@ pub struct ExplainArgs {
     pub verbose: bool,
 }
 
-pub fn run_explain(args: ExplainArgs) -> Result<(), CliError> {
+pub fn run_explain(args: ExplainArgs, no_color: bool) -> Result<(), CliError> {
     let format = if args.json {
         OutputFormat::Json
     } else {
@@ -36,13 +37,40 @@ pub fn run_explain(args: ExplainArgs) -> Result<(), CliError> {
         source: resolved_input.source,
     });
 
-    let rendered = match format {
-        OutputFormat::Text => format_text(&report, args.verbose),
-        OutputFormat::Json => format_json(&report)?,
-    };
+    match format {
+        OutputFormat::Text => write_text_report(&report, args.verbose, no_color),
+        OutputFormat::Json => write_json_report(&report),
+    }
+}
 
-    println!("{rendered}");
-    Ok(())
+fn write_text_report(
+    report: &FailureReport,
+    verbose: bool,
+    no_color: bool,
+) -> Result<(), CliError> {
+    let stdout = io::stdout();
+    let color_choice = if no_color {
+        ColorChoice::Never
+    } else {
+        AutoStream::choice(&stdout)
+    };
+    let text_style = if color_choice == ColorChoice::Never {
+        TextStyle::Plain
+    } else {
+        TextStyle::Color
+    };
+    let rendered = format_text(report, verbose, text_style);
+    let mut stdout = AutoStream::new(stdout, color_choice).lock();
+
+    writeln!(stdout, "{rendered}").map_err(CliError::WriteOutput)
+}
+
+fn write_json_report(report: &FailureReport) -> Result<(), CliError> {
+    let rendered = format_json(report)?;
+    let stdout = io::stdout();
+    let mut stdout = stdout.lock();
+
+    writeln!(stdout, "{rendered}").map_err(CliError::WriteOutput)
 }
 
 #[derive(Debug)]

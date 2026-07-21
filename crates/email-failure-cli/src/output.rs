@@ -1,3 +1,4 @@
+use anstyle::{AnsiColor, Style};
 use clap::ValueEnum;
 use email_failure_core::classify::rule_id_for_signal;
 use email_failure_core::{
@@ -10,45 +11,68 @@ pub enum OutputFormat {
     Json,
 }
 
-pub fn format_text(report: &FailureReport, verbose: bool) -> String {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TextStyle {
+    Plain,
+    Color,
+}
+
+const LABEL_STYLE: Style = Style::new().bold();
+const HEADING_STYLE: Style = AnsiColor::BrightBlue.on_default().bold();
+const CATEGORY_STYLE: Style = AnsiColor::BrightMagenta.on_default();
+const ACTION_STYLE: Style = AnsiColor::BrightCyan.on_default();
+
+pub fn format_text(report: &FailureReport, verbose: bool, text_style: TextStyle) -> String {
     let mut output = String::new();
 
-    push_line(
+    push_field(
         &mut output,
-        format!("Failure: {}", display_category(report.category)),
+        "Failure",
+        display_category(report.category),
+        CATEGORY_STYLE,
+        text_style,
     );
-    push_line(
+    push_field(
         &mut output,
-        format!("Bounce type: {}", display_bounce_type(report.bounce_type)),
+        "Bounce type",
+        display_bounce_type(report.bounce_type),
+        bounce_type_style(report.bounce_type),
+        text_style,
     );
-    push_line(
+    push_field(
         &mut output,
-        format!(
-            "Recommended action: {}",
-            display_action(report.recommended_action)
-        ),
+        "Recommended action",
+        display_action(report.recommended_action),
+        ACTION_STYLE,
+        text_style,
     );
-    push_line(
+    push_field(
         &mut output,
-        format!(
-            "Confidence: {} ({}%)",
+        "Confidence",
+        &format!(
+            "{} ({}%)",
             display_confidence(report.confidence.level),
             report.confidence.score
         ),
+        confidence_style(report.confidence.level),
+        text_style,
     );
     output.push('\n');
 
-    push_line(&mut output, "Why:");
+    push_line(&mut output, paint("Why:", HEADING_STYLE, text_style));
     push_line(&mut output, &report.explanation);
     output.push('\n');
 
-    push_line(&mut output, "What your app should do:");
+    push_line(
+        &mut output,
+        paint("What your app should do:", HEADING_STYLE, text_style),
+    );
     for guidance in &report.app_guidance {
         push_line(&mut output, format!("- {guidance}"));
     }
     output.push('\n');
 
-    push_line(&mut output, "Signals:");
+    push_line(&mut output, paint("Signals:", HEADING_STYLE, text_style));
     if report.signals.is_empty() {
         push_line(&mut output, "- none");
     } else {
@@ -85,6 +109,46 @@ pub fn format_json(report: &FailureReport) -> Result<String, serde_json::Error> 
 fn push_line(output: &mut String, line: impl AsRef<str>) {
     output.push_str(line.as_ref());
     output.push('\n');
+}
+
+fn push_field(
+    output: &mut String,
+    label: &str,
+    value: &str,
+    value_style: Style,
+    text_style: TextStyle,
+) {
+    push_line(
+        output,
+        format!(
+            "{}: {}",
+            paint(label, LABEL_STYLE, text_style),
+            paint(value, value_style, text_style)
+        ),
+    );
+}
+
+fn paint(value: &str, style: Style, text_style: TextStyle) -> String {
+    match text_style {
+        TextStyle::Plain => value.to_owned(),
+        TextStyle::Color => format!("{style}{value}{style:#}"),
+    }
+}
+
+fn bounce_type_style(bounce_type: BounceType) -> Style {
+    match bounce_type {
+        BounceType::Hard => AnsiColor::BrightRed.on_default(),
+        BounceType::Soft => AnsiColor::BrightYellow.on_default(),
+        BounceType::Unknown => AnsiColor::BrightBlack.on_default(),
+    }
+}
+
+fn confidence_style(level: ConfidenceLevel) -> Style {
+    match level {
+        ConfidenceLevel::Low => AnsiColor::BrightRed.on_default(),
+        ConfidenceLevel::Medium => AnsiColor::BrightYellow.on_default(),
+        ConfidenceLevel::High => AnsiColor::BrightGreen.on_default(),
+    }
 }
 
 fn display_category(category: FailureCategory) -> &'static str {
@@ -141,9 +205,10 @@ fn display_signal_kind(kind: SignalKind) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use email_failure_core::{explain, InputSource, ParseInput};
+    use anstyle::AnsiColor;
+    use email_failure_core::{explain, BounceType, ConfidenceLevel, InputSource, ParseInput};
 
-    use super::format_text;
+    use super::{bounce_type_style, confidence_style, format_text, TextStyle};
 
     #[test]
     fn text_output_matches_golden_shape() {
@@ -153,7 +218,7 @@ mod tests {
         });
 
         assert_eq!(
-            format_text(&report, false),
+            format_text(&report, false, TextStyle::Plain),
             concat!(
                 "Failure: Invalid recipient\n",
                 "Bounce type: Hard bounce\n",
@@ -173,6 +238,54 @@ mod tests {
                 "- enhanced_status_code: 5.1.1\n",
                 "- matched_phrase: user unknown\n",
             )
+        );
+    }
+
+    #[test]
+    fn color_output_styles_key_fields_without_changing_text() {
+        let report = explain(ParseInput {
+            raw: "550 5.1.1 User unknown",
+            source: InputSource::Inline,
+        });
+        let plain = format_text(&report, false, TextStyle::Plain);
+        let color = format_text(&report, false, TextStyle::Color);
+
+        assert_eq!(anstream::adapter::strip_str(&color).to_string(), plain);
+        assert!(color.contains("\x1b[1mFailure\x1b[0m: \x1b[95mInvalid recipient\x1b[0m"));
+        assert!(color.contains("\x1b[1mBounce type\x1b[0m: \x1b[91mHard bounce\x1b[0m"));
+        assert!(color.contains(concat!(
+            "\x1b[1mRecommended action\x1b[0m: ",
+            "\x1b[96mSuppress recipient\x1b[0m"
+        )));
+        assert!(color.contains("\x1b[1mConfidence\x1b[0m: \x1b[92mHigh (99%)\x1b[0m"));
+        assert!(color.contains("\x1b[1m\x1b[94mWhy:\x1b[0m"));
+    }
+
+    #[test]
+    fn bounce_and_confidence_styles_cover_every_result_level() {
+        assert_eq!(
+            bounce_type_style(BounceType::Hard),
+            AnsiColor::BrightRed.on_default()
+        );
+        assert_eq!(
+            bounce_type_style(BounceType::Soft),
+            AnsiColor::BrightYellow.on_default()
+        );
+        assert_eq!(
+            bounce_type_style(BounceType::Unknown),
+            AnsiColor::BrightBlack.on_default()
+        );
+        assert_eq!(
+            confidence_style(ConfidenceLevel::Low),
+            AnsiColor::BrightRed.on_default()
+        );
+        assert_eq!(
+            confidence_style(ConfidenceLevel::Medium),
+            AnsiColor::BrightYellow.on_default()
+        );
+        assert_eq!(
+            confidence_style(ConfidenceLevel::High),
+            AnsiColor::BrightGreen.on_default()
         );
     }
 }

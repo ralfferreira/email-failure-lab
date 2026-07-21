@@ -15,6 +15,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Built-in raw and provider fixtures with `fixtures list` and `fixtures show` commands.
 - Fixture, schema, CLI, regression, and Criterion benchmark coverage.
 - Diagnostic rule identifiers in verbose text output without changing JSON v0.1.
+- Optional terminal-aware color for text output, with `--no-color` and `NO_COLOR` opt-outs.
 - Contributor guidance, dual MIT/Apache-2.0 licensing, and continuous integration on Linux and Windows.
 - A public roadmap, Code of Conduct, security policy, and release checklist.
 
