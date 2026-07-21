@@ -31,6 +31,7 @@ fn explains_inline_text() {
     let mut command = Command::cargo_bin("email-lab").expect("binary exists");
 
     command
+        .env_remove("CLICOLOR_FORCE")
         .args(["explain", "550 5.1.1 User unknown"])
         .assert()
         .success()
@@ -38,7 +39,8 @@ fn explains_inline_text() {
         .stdout(predicate::str::contains(
             "Recommended action: Suppress recipient",
         ))
-        .stdout(predicate::str::contains("matched_phrase: user unknown"));
+        .stdout(predicate::str::contains("matched_phrase: user unknown"))
+        .stdout(predicate::str::contains("\x1b[").not());
 }
 
 #[test]
@@ -180,6 +182,66 @@ fn explain_help_mentions_provider_webhook_json() {
 }
 
 #[test]
+fn explain_help_documents_plain_text_opt_out() {
+    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+
+    command
+        .args(["explain", "--help"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("--no-color"))
+        .stdout(predicate::str::contains("Disable color in text output"));
+}
+
+#[test]
+fn forced_color_styles_key_result_fields() {
+    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+
+    command
+        .env("CLICOLOR_FORCE", "1")
+        .env_remove("NO_COLOR")
+        .args(["explain", "550 5.1.1 User unknown"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(concat!(
+            "\x1b[1mFailure\x1b[0m: ",
+            "\x1b[95mInvalid recipient\x1b[0m"
+        )))
+        .stdout(predicate::str::contains(concat!(
+            "\x1b[1mRecommended action\x1b[0m: ",
+            "\x1b[96mSuppress recipient\x1b[0m"
+        )));
+}
+
+#[test]
+fn no_color_flag_overrides_forced_color() {
+    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+
+    command
+        .env("CLICOLOR_FORCE", "1")
+        .env_remove("NO_COLOR")
+        .args(["--no-color", "explain", "550 5.1.1 User unknown"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Failure: Invalid recipient"))
+        .stdout(predicate::str::contains("\x1b[").not());
+}
+
+#[test]
+fn no_color_environment_variable_disables_color() {
+    let mut command = Command::cargo_bin("email-lab").expect("binary exists");
+
+    command
+        .env("CLICOLOR_FORCE", "1")
+        .env("NO_COLOR", "1")
+        .args(["explain", "550 5.1.1 User unknown"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Failure: Invalid recipient"))
+        .stdout(predicate::str::contains("\x1b[").not());
+}
+
+#[test]
 fn explains_inline_provider_webhook_json() {
     let mut command = Command::cargo_bin("email-lab").expect("binary exists");
 
@@ -270,6 +332,31 @@ fn explains_inline_text_as_json() {
         .stdout(predicate::str::contains(r#""bounceType": "hard""#))
         .stdout(predicate::str::contains("rule_id").not())
         .stdout(predicate::str::contains("ruleId").not());
+}
+
+#[test]
+fn json_output_is_byte_for_byte_unchanged_when_color_is_forced() {
+    let args = ["explain", "550 5.1.1 User unknown", "--json"];
+    let plain = Command::cargo_bin("email-lab")
+        .expect("binary exists")
+        .env_remove("CLICOLOR_FORCE")
+        .env_remove("NO_COLOR")
+        .args(args)
+        .output()
+        .expect("plain command runs");
+    let forced_color = Command::cargo_bin("email-lab")
+        .expect("binary exists")
+        .env("CLICOLOR_FORCE", "1")
+        .env_remove("NO_COLOR")
+        .args(args)
+        .output()
+        .expect("forced-color command runs");
+
+    assert!(plain.status.success());
+    assert!(forced_color.status.success());
+    assert_eq!(forced_color.stdout, plain.stdout);
+    assert_eq!(forced_color.stderr, plain.stderr);
+    assert!(!plain.stdout.contains(&0x1b));
 }
 
 #[test]
