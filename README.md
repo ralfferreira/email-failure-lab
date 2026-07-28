@@ -73,22 +73,6 @@ cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/p
 
 Provider JSON support is intentionally narrow: v0.2 recognizes the documented `email.bounced` and `email.failed` failure fields, ignores unrelated metadata, and makes no API calls. Valid but unsupported JSON returns an `unknown` report; malformed JSON continues through the existing plain-text classifier.
 
-## Use Email Failure Lab with provider webhooks
-
-Classify a bounce captured during local webhook testing and save the stable JSON report:
-
-```bash
-cargo run --quiet -p email-failure-cli -- \
-  explain ./resend-bounce.json --json \
-  > failure-report.json
-```
-
-This command reads a local file. It does not call Resend, send email, verify webhook signatures, or require a provider API token. Use a synthetic or sanitized payload such as the built-in `email-bounced-invalid-recipient.json` fixture when sharing examples.
-
-Your app can route the report by `recommendedAction`. For example, `suppress_recipient` can disable future delivery to an invalid address, while `retry_later` can schedule a bounded retry with backoff. Keep the recipient or message identifier from the verified webhook because `FailureReport` does not include provider metadata.
-
-See [Use provider webhooks in your app](docs/provider-webhooks.md) for a complete Resend-style payload, JSON logging commands, a TypeScript decision function, and direct Rust library usage.
-
 Discover the built-in demo fixtures:
 
 ```bash
@@ -160,6 +144,22 @@ Use `--verbose` with text output to include signal weights and internal rule IDs
 Text output uses color automatically when stdout is a compatible terminal. Pass `--no-color` or set a non-empty [`NO_COLOR`](https://no-color.org/) environment variable to keep it plain. Piped and redirected output is plain by default, and JSON output never includes terminal styling.
 
 Multiline input is normalized as plain text before classification, so signals can appear on different lines. Full `.eml`, MIME, attachment, and DSN parsing remain out of scope for v0.1; `.eml` files are treated as plain UTF-8 text.
+
+## Use Email Failure Lab with provider webhooks
+
+Classify a bounce captured during local webhook testing and save the stable JSON report:
+
+```bash
+cargo run --quiet -p email-failure-cli -- \
+  explain ./resend-bounce.json --json \
+  > failure-report.json
+```
+
+This command reads a local file. It does not call Resend, send email, verify webhook signatures, or require a provider API token. Use a synthetic or sanitized payload such as the built-in `email-bounced-invalid-recipient.json` fixture when sharing examples.
+
+Your app can route the report by `recommendedAction`. For example, `suppress_recipient` can disable future delivery to an invalid address, while `retry_later` can schedule a bounded retry with backoff. Keep the recipient or message identifier from the verified webhook because `FailureReport` does not include provider metadata.
+
+See [Use provider webhooks in your app](docs/provider-webhooks.md) for a complete Resend-style payload, JSON logging commands, a TypeScript decision function, and direct Rust library usage.
 
 ## Supported v0.1 categories
 
