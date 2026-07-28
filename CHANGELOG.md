@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Optional terminal-aware color for text output, with `--no-color` and `NO_COLOR` opt-outs.
 - Contributor guidance, dual MIT/Apache-2.0 licensing, and continuous integration on Linux and Windows.
 - A public roadmap, Code of Conduct, security policy, and release checklist.
+- Resend-style provider workflow examples for the CLI, JSON automation, TypeScript, and Rust.
 
 ### Changed
 

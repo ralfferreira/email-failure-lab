@@ -73,6 +73,22 @@ cargo run -p email-failure-cli -- explain ./crates/email-failure-core/fixtures/p
 
 Provider JSON support is intentionally narrow: v0.2 recognizes the documented `email.bounced` and `email.failed` failure fields, ignores unrelated metadata, and makes no API calls. Valid but unsupported JSON returns an `unknown` report; malformed JSON continues through the existing plain-text classifier.
 
+## Use Email Failure Lab with provider webhooks
+
+Classify a bounce captured during local webhook testing and save the stable JSON report:
+
+```bash
+cargo run --quiet -p email-failure-cli -- \
+  explain ./resend-bounce.json --json \
+  > failure-report.json
+```
+
+This command reads a local file. It does not call Resend, send email, verify webhook signatures, or require a provider API token. Use a synthetic or sanitized payload such as the built-in `email-bounced-invalid-recipient.json` fixture when sharing examples.
+
+Your app can route the report by `recommendedAction`. For example, `suppress_recipient` can disable future delivery to an invalid address, while `retry_later` can schedule a bounded retry with backoff. Keep the recipient or message identifier from the verified webhook because `FailureReport` does not include provider metadata.
+
+See [Use provider webhooks in your app](docs/provider-webhooks.md) for a complete Resend-style payload, JSON logging commands, a TypeScript decision function, and direct Rust library usage.
+
 Discover the built-in demo fixtures:
 
 ```bash
@@ -180,6 +196,7 @@ crates/
   email-failure-cli/   # CLI args, file input, text/JSON output
 docs/
   failure-categories.md   # category and app-handling reference
+  provider-webhooks.md    # provider payload and app-routing examples
   release-checklist.md    # maintainer release workflow
 schemas/
   failure-report.v0.1.json
@@ -189,6 +206,7 @@ schemas/
 
 - [Roadmap](ROADMAP.md)
 - [Failure categories](docs/failure-categories.md)
+- [Provider webhook workflow](docs/provider-webhooks.md)
 - [FailureReport JSON schema](schemas/failure-report.v0.1.json)
 - [Changelog](CHANGELOG.md)
 - [Release checklist](docs/release-checklist.md)
