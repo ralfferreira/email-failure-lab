@@ -22,12 +22,12 @@ Delivered:
 - Local normalization of supported Resend-style `email.bounced` and `email.failed` payloads.
 - Sanitized provider fixtures for common failure paths.
 - `fixtures list` and `fixtures show` commands for built-in examples.
+- A provider webhook guide with Resend-style CLI, JSON automation, TypeScript, and Rust examples.
 - The existing deterministic classifier and JSON v0.1 contract remain the source of truth.
 - No network calls, provider credentials, webhook verification, or event storage.
 
 Next:
 
-- Add practical provider and Resend integration guidance in [#24](https://github.com/ralfferreira/email-failure-lab/issues/24).
 - Expand app-handling examples for each category in [#25](https://github.com/ralfferreira/email-failure-lab/issues/25).
 - Treat additional providers and event types as separately accepted scope.
 
