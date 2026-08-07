@@ -42,7 +42,7 @@ Next:
 
 ## v0.4 - DNS Doctor
 
-**Status:** Planned. Design comes first in [#22](https://github.com/ralfferreira/email-failure-lab/issues/22).
+**Status:** Planned. Design is recorded in [RFC 0005](docs/rfcs/0005-dns-doctor-v0.4.md) through [#22](https://github.com/ralfferreira/email-failure-lab/issues/22).
 
 - Define initial SPF, DKIM, and DMARC checks.
 - Model findings and actionable fix plans.
