@@ -417,17 +417,22 @@ Loopback integration tests may bind an ephemeral loopback port. They must confir
 
 ## Answers to issue #21 questions
 
-1. **Which scenarios should v0.3 support first?**  
+1. **Which scenarios should v0.3 support first?**
+
    One sanitized bounce, one exact duplicate bounce, and one reversed pair of existing Resend-style fixtures. Custom named packs may combine built-in fixtures and local JSON objects.
 
-2. **Should scenarios be provider-specific or provider-agnostic?**  
+2. **Should scenarios be provider-specific or provider-agnostic?**
+
    Replay and transforms are provider-agnostic. Initial built-in packs are Resend-style because v0.2 already ships those fixtures. v0.3 adds no provider adapter.
 
-3. **How should duplicate and out-of-order events be represented?**  
+3. **How should duplicate and out-of-order events be represented?**
+
    A duplicate is another `Delivery` that reuses the same loaded bytes and points to its first delivery through `duplicate_of`. Out-of-order delivery is the explicit `ReverseOrder` transform over the base source list. Neither transform changes payload fields.
 
-4. **What does the CLI surface look like?**  
+4. **What does the CLI surface look like?**
+
    The group has `email-lab simulate list`, `simulate show <PACK>`, and `simulate run`. The run command accepts a built-in pack or an ad hoc `--name` with repeated `--fixture` and `--file` sources. `--duplicate` and `--out-of-order` apply the two fixed transforms. `--post-to` and `--allow-loopback-post` enable local delivery together.
 
-5. **What safety constraints apply when POSTing to local endpoints?**  
+5. **What safety constraints apply when POSTing to local endpoints?**
+
    Dry-run is the default. POST requires dual consent and an `http` URL with a numeric loopback address and explicit port. The client disables DNS, proxies, redirects, retries, concurrency, credentials, and user-defined headers. It enforces source and delivery limits plus a five-second request timeout. Every request carries the fixed simulation headers.
