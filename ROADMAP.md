@@ -33,7 +33,7 @@ Next:
 
 ## v0.3 - Webhook Scenario Simulator
 
-**Status:** Planned. Design comes first in [#21](https://github.com/ralfferreira/email-failure-lab/issues/21).
+**Status:** Planned. Design is recorded in [RFC 0004](docs/rfcs/0004-webhook-scenario-simulator-v0.3.md) for [#21](https://github.com/ralfferreira/email-failure-lab/issues/21).
 
 - Define the smallest useful scenario set.
 - Model duplicate and out-of-order events.
