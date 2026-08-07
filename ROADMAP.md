@@ -60,7 +60,7 @@ Next:
 
 These directions are useful, but are not assigned to a numbered release:
 
-- An agent-friendly MCP wrapper in [#28](https://github.com/ralfferreira/email-failure-lab/issues/28).
+- An agent-friendly MCP wrapper in [#28](https://github.com/ralfferreira/email-failure-lab/issues/28), designed in [RFC 0002](docs/rfcs/0002-mcp-wrapper.md).
 - A lightweight static documentation site in [#29](https://github.com/ralfferreira/email-failure-lab/issues/29), deferred per [RFC 0003](docs/rfcs/0003-docs-site-plan.md).
 
 ## Scope boundaries
